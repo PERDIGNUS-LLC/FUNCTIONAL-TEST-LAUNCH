@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Founder | The NestEgg™</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Inter:wght@300;400;600&family=Libre+Baskerville:ital@1&display=swap" rel="stylesheet">
+  <style>
+    :root {
+        --primary: #2c2c2c; --accent: #6b8c4f; --bg: #faf9f6;
+        --text: #333; --serif: 'Playfair Display', serif; --sans: 'Inter', sans-serif;
+    }
+    body { font-family: var(--sans); background: var(--bg); color: var(--text); line-height: 1.6; margin: 0; }
+    header { background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; }
+    nav { max-width: 1100px; margin: auto; display: flex; align-items: center; justify-content: space-between; padding: 1rem 2rem; }
+    .intro { max-width: 1100px; margin: 3rem auto; padding: 0 2rem; display: flex; align-items: center; gap: 3rem; flex-wrap: wrap; }
+    .intro img { width: 400px; border-radius: 14px; box-shadow: 0 8px 20px rgba(0,0,0,0.08); object-fit: cover; }
+    .intro-text { flex: 1; }
+    .intro-text h1 { font-family: var(--serif); font-size: 2.8rem; color: var(--primary); margin-bottom: 1rem; }
+    .intro-text p { margin-bottom: 1.2rem; font-size: 1.05rem; color: #555; }
+    .values { background: white; padding: 5rem 2rem; }
+    .values h2 { font-family: var(--serif); text-align: center; margin-bottom: 3rem; font-size: 2.2rem; }
+    .value-cards { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; }
+    .card { background: var(--bg); border-radius: 14px; padding: 2rem; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+    .card h3 { font-family: var(--serif); margin-bottom: 1rem; }
+    .quote { font-family: 'Libre Baskerville', serif; font-style: italic; text-align: center; font-size: 1.1rem; margin: 4rem auto; color: #666; max-width: 700px; }
+    footer { text-align:center; padding: 2rem; color: #6e6e6e; font-size: 0.9rem; border-top: 1px solid rgba(0,0,0,0.03); }
+    @media (max-width: 800px) { .intro { flex-direction: column; text-align: center; } .intro img { width: 100%; max-width: 420px; } }
+  </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="index.html" style="text-decoration: none; color: #2c2c2c; display: flex; align-items: center; gap: 12px;">
+                <img src="OFFICIAL NE.png" alt="The NestEgg™ logo" style="width:48px;height:48px;object-fit:contain">
+                <span style="font-family: 'Playfair Display', serif; font-weight: 500; font-size: 1.4rem;">The NestEgg<sup>&trade;</sup></span>
+            </a>
+            <div style="display: flex; align-items: center; gap: 1.5rem;">
+                <a href="index.html" style="text-decoration: none; color: #2c2c2c; font-weight: 500;">Home</a>
+                <a href="Birds.html" style="text-decoration: none; color: #2c2c2c; font-weight: 500;">Birds</a>
+                <a href="founder.html" style="text-decoration: none; color: #2c2c2c; font-weight: 500;">Founder</a>
+                <button id="cartBtn" style="background: rgba(44, 44, 44, 0.1); border: none; color: #2c2c2c; padding: 8px 14px; border-radius: 8px; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 700;">
+                    Cart <span id="navCartCount" style="background: rgba(0,0,0,0.1); padding: 4px 8px; border-radius: 999px;">0</span>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <section class="intro">
+        <img src="Founder Photo.jpg" alt="Founder Portrait">
+        <div class="intro-text">
+            <h1>Meet the Founder</h1>
+            <p>NestEgg was born from the belief that design should serve both beauty and life. Our founder — an engineer, artist, and father — sought to bridge human ingenuity with nature’s quiet wisdom.</p>
+            <p>What began as a personal project soon became a pursuit of ecological artistry — a movement toward harmony between craft and conservation.</p>
+        </div>
+    </section>
+
+    <section class="values">
+        <h2>Principles that Shape Every Nest</h2>
+        <div class="value-cards">
+            <div class="card"><h3>Crafted with Purpose</h3><p>From concept to casting, every curve and contour is intentional — designed for function, safety, and soul.</p></div>
+            <div class="card"><h3>Inspired by Nature</h3><p>We study avian behavior and environmental science to ensure each NestEgg harmonizes with the life it shelters.</p></div>
+            <div class="card"><h3>Driven by Legacy</h3><p>Every NestEgg is a promise that human hands can still build things that heal.</p></div>
+        </div>
+    </section>
+
+    <div class="quote">“Design is not invention — it is remembrance.”</div>
+
+    <footer>
+        <p>© 2025 The NestEgg™. All rights reserved.</p>
+    </footer>
+</body>
+</html>
