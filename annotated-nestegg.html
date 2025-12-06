@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>The NestEgg™ | Feature Explorer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- model-viewer (for .glb rendering) -->
+  <script type="module"
+          src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js">
+  </script>
+
+  <!-- Base styles (you can tweak later) -->
+  <style>
+    :root {
+      --bg: #050608;
+      --panel-bg: #0d1015;
+      --accent: #e6e0c8;
+      --accent-soft: rgba(230, 224, 200, 0.25);
+      --text-main: #f4f4f4;
+      --text-muted: #a9b0c0;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+                   sans-serif;
+      background: radial-gradient(circle at top, #151924 0%, #050608 55%, #000 100%);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    main.ne-layout {
+      flex: 1;
+      display: grid;
+      grid-template-columns: minmax(0, 2fr) minmax(0, 1.3fr);
+      gap: 2.5rem;
+      padding: 2rem clamp(1.5rem, 4vw, 4rem);
+      box-sizing: border-box;
+      align-items: stretch;
+    }
+
+    /* When zoomed in, emphasize split view a bit more */
+    main.ne-layout.ne-zoomed {
+      grid-template-columns: minmax(0, 1.7fr) minmax(0, 1.5fr);
+    }
+
+    .ne-viewer-shell {
+      background: radial-gradient(circle at top, #181f2c 0%, #080b10 55%, #020305 100%);
+      border-radius: 1.75rem;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7);
+      position: relative;
+      overflow: hidden;
+      padding: 1.5rem;
+      animation: float 9s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%   { transform: translateY(0); }
+      50%  { transform: translateY(-6px); }
+      100% { transform: translateY(0); }
+    }
+
+    model-viewer {
+      width: 100%;
+      height: min(70vh, 540px);
+      background: transparent;
+      --poster-color: transparent;
+    }
+
+    .ne-label-overlay {
+      position: absolute;
+      top: 1.5rem;
+      left: 1.75rem;
+      z-index: 10;
+    }
+
+    .ne-label-overlay h1 {
+      margin: 0;
+      font-size: 1.5rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .ne-label-overlay span {
+      display: block;
+      margin-top: 0.25rem;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .ne-detail-panel {
+      background: var(--panel-bg);
+      border-radius: 1.75rem;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.8);
+      padding: 1.75rem 1.75rem 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .ne-detail-panel::before {
+      content: "";
+      position: absolute;
+      inset: -30%;
+      background: radial-gradient(circle at top left,
+                  rgba(230, 224, 200, 0.05) 0, transparent 55%);
+      pointer-events: none;
+    }
+
+    .ne-detail-kicker {
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+
+    #detail-title {
+      font-size: 1.3rem;
+      margin: 0;
+    }
+
+    #detail-body {
+      font-size: 0.95rem;
+      line-height: 1.5;
+      color: var(--text-main);
+      max-width: 36rem;
+    }
+
+    .ne-hint {
+      margin-top: 1rem;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .ne-reset {
+      margin-top: auto;
+      align-self: flex-start;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.32);
+      background: transparent;
+      color: var(--text-main);
+      padding: 0.45rem 0.9rem;
+      font-size: 0.8rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    .ne-reset span {
+      font-size: 0.9rem;
+    }
+
+    .ne-reset:hover {
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    /* ---------- GLOWING ORB HOTSPOTS + LABELS ---------- */
+
+    model-viewer button.ne-hotspot {
+      position: relative;
+      border: none;
+      background: none;
+      padding: 0;
+      cursor: pointer;
+      transform: translate(-50%, -50%);
+      color: var(--accent);
+      font-size: 0.78rem;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .ne-hotspot .orb {
+      width: 14px;
+      height: 14px;
+      border-radius: 999px;
+      background:
+        radial-gradient(circle at 30% 30%, #fff 0, #f9f3d4 18%, #e6daa7 38%, transparent 60%);
+      box-shadow:
+        0 0 6px rgba(255, 247, 203, 0.9),
+        0 0 18px rgba(230, 218, 167, 0.8),
+        0 0 32px rgba(220, 210, 150, 0.7);
+      animation: orbPulse 2.4s ease-in-out infinite;
+    }
+
+    @keyframes orbPulse {
+      0%   { transform: scale(0.98); opacity: 0.9; }
+      50%  { transform: scale(1.16); opacity: 1; }
+      100% { transform: scale(0.98); opacity: 0.9; }
+    }
+
+    .ne-hotspot.active .orb {
+      opacity: 0;
+      box-shadow: none;
+      animation: none;
+      transition: opacity 0.22s ease-out;
+    }
+
+    .ne-hotspot .label-shell {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      color: var(--accent);
+      text-shadow: 0 0 4px rgba(0, 0, 0, 0.75);
+    }
+
+    .ne-hotspot .label-line {
+      width: 42px;
+      height: 0;
+      border-top: 1.5px solid rgba(230, 224, 200, 0.9);
+      opacity: 0.9;
+    }
+
+    .ne-hotspot .label-text {
+      font-weight: 500;
+      letter-spacing: 0.03em;
+    }
+
+    /* Zoomed state: emphasize focused hotspot label */
+    .ne-hotspot.active .label-text {
+      text-decoration: underline;
+    }
+
+    /* ---------- RESPONSIVE ---------- */
+    @media (max-width: 900px) {
+      main.ne-layout,
+      main.ne-layout.ne-zoomed {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .ne-viewer-shell {
+        height: auto;
+      }
+
+      model-viewer {
+        height: min(60vh, 480px);
+      }
+
+      .ne-detail-panel {
+        margin-top: 1rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="header-placeholder"></div>
+
+  <main class="ne-layout" id="ne-layout">
+    <!-- LEFT: 3D VIEWER PANEL -->
+    <section class="ne-viewer-shell">
+      <div class="ne-label-overlay">
+        <h1>The NestEgg™</h1>
+        <span>Feature Explorer</span>
+      </div>
+
+      <model-viewer id="nesteggViewer"
+        src="NestEggFBCR.glb"
+        camera-controls
+        auto-rotate
+        auto-rotate-delay="2000"
+        rotation-per-second="15deg"
+        interaction-prompt="none"
+        exposure="0.9"
+        shadow-intensity="0.2"
+        camera-orbit="20deg 80deg 1.6m"
+        field-of-view="35deg"
+        environment-image="neutral">
+
+        <!-- Ventilation Aperture -->
+        <button class="ne-hotspot"
+          slot="hotspot-vent"
+          data-feature-id="vent"
+          data-orbit="40deg 80deg 1.1m"
+          data-fov="22deg"
+          data-title="Ventilation Aperture"
+          data-body="Upper ventilation apertures exhaust warm, humid air while preserving a stable thermal gradient across the NestEgg interior. The aperture diameter and placement are tuned to reduce drafts across the nest bowl while still enabling adequate air exchange.">
+          <span class="orb"></span>
+          <span class="label-shell">
+            <span class="label-line"></span>
+            <span class="label-text">Ventilation Aperture</span>
+          </span>
+        </button>
+
+        <!-- Drainage Aperture -->
+        <button class="ne-hotspot"
+          slot="hotspot-drain"
+          data-feature-id="drain"
+          data-orbit="0deg 100deg 1.2m"
+          data-fov="25deg"
+          data-title="Drainage Aperture"
+          data-body="A recessed drainage aperture at the nadir of the cavity evacuates incident rainwater and condensation, preventing mold growth and cold pooling beneath the clutch. Its geometry resists clogging from nesting material.">
+          <span class="orb"></span>
+          <span class="label-shell">
+            <span class="label-line"></span>
+            <span class="label-text">Drainage Aperture</span>
+          </span>
+        </button>
+
+        <!-- Cling Ridge + Flat Base -->
+        <button class="ne-hotspot"
+          slot="hotspot-base"
+          data-feature-id="cling-base"
+          data-orbit="190deg 95deg 1.25m"
+          data-fov="27deg"
+          data-title="Flat Base & Cling Ridges"
+          data-body="An enlarged flat base couples with integrated cling ridges to lock the NestEgg against branch curvature. This distributes load, resists rotation in high winds, and channels runoff into a peripheral gutter rather than under the cavity floor.">
+          <span class="orb"></span>
+          <span class="label-shell">
+            <span class="label-line"></span>
+            <span class="label-text">Flat Base &amp; Cling Ridges</span>
+          </span>
+        </button>
+
+        <!-- Modular Ingress / Insert (placeholder) -->
+        <button class="ne-hotspot"
+          slot="hotspot-insert"
+          data-feature-id="insert"
+          data-orbit="-20deg 80deg 1.2m"
+          data-fov="24deg"
+          data-title="Modular Ingress Insert"
+          data-body="A modular ingress insert defines the entrance profile, allowing future Seasonal Vent Inserts and species-specific insets to be swapped in without replacing the primary shell. This architecture also simplifies cleaning and service.">
+          <span class="orb"></span>
+          <span class="label-shell">
+            <span class="label-line"></span>
+            <span class="label-text">Modular Ingress Insert</span>
+          </span>
+        </button>
+
+      </model-viewer>
+    </section>
+
+    <!-- RIGHT: DETAIL PANEL -->
+    <aside class="ne-detail-panel">
+      <div class="ne-detail-kicker">Feature Detail</div>
+      <h2 id="detail-title">Explore the NestEgg</h2>
+      <p id="detail-body">
+        Tap any glowing orb on the NestEgg to zoom in on that feature. The camera
+        will reframe around the selected detail while this panel explains how it
+        contributes to microclimate stability, safety, and field usability.
+      </p>
+
+      <div class="ne-hint">
+        Hint: tap the same feature again (or “Reset View”) to return to the
+        full product view.
+      </div>
+
+      <button class="ne-reset" id="resetViewBtn" type="button">
+        <span>⟲</span>
+        <span>Reset view</span>
+      </button>
+    </aside>
+  </main>
+
+  <div id="footer-placeholder"></div>
+
+  <!-- Existing header/footer loader -->
+  <script src="main.js" defer></script>
+  <!-- New annotation logic -->
+  <script src="annotated-nestegg.js" defer></script>
+</body>
+</html>
