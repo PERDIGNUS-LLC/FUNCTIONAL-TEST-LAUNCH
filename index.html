@@ -1,214 +1,611 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TerraDignus | Advanced Wildlife Habitation</title>
-    <style>
-        /* --- RESET & VARIABLES --- */
-        :root {
-            --forest-green: #1A4D3E; /* Your Brand Green */
-            --clay: #8D7F73; /* NecTerra vibe */
-            --off-white: #F4F4F0;
-            --black: #111;
-            --grey: #b3b3b3ff; /* The Bio-Seal Color */
-        }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
-        
-        body { background-color: var(--off-white); color: var(--black); line-height: 1.6; }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TerraDignus | The NestEgg</title>
 
-        /* --- TYPOGRAPHY --- */
-        h1, h2, h3 { font-weight: 700; letter-spacing: -0.05em; }
-        .roman { font-family: 'Times New Roman', serif; letter-spacing: 0.1em; }
-        
-        /* --- HERO SECTION --- */
-        header {
-            height: 90vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            background: var(--forest-green);
-            color: white;
-            padding: 2rem;
-        }
-        .logo-container { max-width: 125px; margin-bottom: .8rem; margin-top: 20px;}
-        header h1 { font-size: 4rem; margin-bottom: 0.5rem; }
-        header p { font-size: 1.2rem; opacity: 0.8; letter-spacing: 0.2em; text-transform: uppercase; }
+  <!-- MODEL VIEWER -->
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
 
-        /* --- PRODUCT GRID --- */
-        section { padding: 5rem 2rem; max-width: 1200px; margin: 0 auto; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; }
-        
-        .product-card img {
-            width: 100%;
-            border-radius: 12px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            transition: transform 0.3s ease;
-        }
-        .product-card img:hover { transform: translateY(-5px); }
-        
-        .tag { 
-            display: inline-block; 
-            background: var(--black); 
-            color: white; 
-            padding: 5px 10px; 
-            font-size: 0.8rem; 
-            font-weight: bold; 
-            border-radius: 4px;
-            margin-bottom: 1rem;
-        }
-        
-        .pro-tag { background: var(--grey); } /* Highlights the Pro-Series */
-
-        /* --- PATENT SECTION --- */
-        .patents {
-            background: #e8e8e8;
-            padding: 4rem;
-            text-align: center;
-            margin-top: 4rem;
-            border-radius: 12px;
-        }
-        .patent-number { font-family: monospace; font-size: 1.2rem; color: var(--forest-green); }
-
-        /* --- FOOTER --- */
-        footer { 
-            text-align: center; 
-            padding: 3rem; 
-            background: var(--black); 
-            color: var(--off-white); 
-            margin-top: 5rem; 
-        }
-
-        /* Mobile Fix */
-        @media (max-width: 768px) {
-            .grid { grid-template-columns: 1fr; }
-            header h1 { font-size: 2.5rem; }
-        }
-    </style>
-    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
-</head>
-<body>
-
-    <header>
-        <img src="assets/TD HL BINDRUNE.png" alt="TerraDignus Logo" class="logo-container"> 
-        <h1>TerraDignus</h1>
-        <p class="roman">EST. MMXV</p>
-        <br>
-        <p>Conservation Engineering. Redefined.</p>
-    </header>
-
-    <section>
-        <div class="grid">
-            <div class="text-content">
-                <span class="tag">THE ECO-LINE</span>
-                <h2>The NestEgg™</h2>
-                <p class="roman">Advanced Biocomposite Incubation</p>
-                <br><p><strong>Bio-analogous infrastructure.</strong> 
-                    Engineered to outperform traditional housing, the NestEgg utilizes our proprietary <strong>NecTerra™</strong> technology to replicate the thermal mass and porosity of natural heartwood. The result is a stabilized microclimate that reduces embryonic mortality in volatile weather patterns.</p>
-                <ul>
-                    <li>NecTerra™ Biocomposite Shell</li>
-                    <li>Species-Specific Thermal Calibration</li>
-                    <li>Zero-Waste Manufacturing</li>
-                </ul>
-            </div>
-            <div class="image-content">
-                <model-viewer 
-    id="nestegg-viewer" 
-    src="assets/nestegg[1].glb" 
-    alt="3D model of the NestEgg" 
-    orientation="0deg -90deg -45deg" 
-    
-    /* CAMERA & ZOOM SETTINGS */
-    camera-orbit="0deg 75deg auto"
-    field-of-view="20deg" 
-    min-camera-orbit="auto auto 55%" 
-    max-camera-orbit="auto auto 200%"
-    
-    auto-rotate 
-    camera-controls 
-    shadow-intensity="1" 
-    environment-image="neutral" 
-    style="width: 100%; height: 550px; background-color: transparent;">
-</model-viewer>
-            </div>
-        </div>
-    </section>
-
-    <section>
-        <div class="grid">
-            <div class="image-content">
-                <div class="image-content">
-    
-    <model-viewer 
-    id="nuthatch-viewer" 
-    src="assets/nuthatch-v1.glb" 
-    orientation="0deg -90deg -45deg" 
-      
-    /* CAMERA & ZOOM SETTINGS */
-    camera-orbit="0deg 75deg auto"
-    field-of-view="25deg" 
-    min-camera-orbit="auto auto 55%" 
-    max-camera-orbit="auto auto 200%"
-    
-    auto-rotate 
-    camera-controls 
-    shadow-intensity="1" 
-    environment-image="neutral" 
-    style="width: 100%; height: 550px; background-color: transparent;">
-</model-viewer>
-
-    <div style="text-align: center; margin-top: 15px;">
-        <button onclick="toggleNutHatchView('closed')" style="padding: 10px 20px; margin: 0 5px; cursor: pointer; border: none; background: var(--forest-green); color: white; border-radius: 6px;">
-            Closed Assembly
-        </button>
-        <button onclick="toggleNutHatchView('exploded')" style="padding: 10px 20px; margin: 0 5px; cursor: pointer; border: none; background: var(--grey); color: white; border-radius: 6px;">
-            Exploded View
-        </button>
-    </div>
-</div>
-            </div>
-            <div class="text-content">
-    <span class="tag pro-tag">THE PRO-SERIES</span>
-    <h2>The NutHatch™</h2>
-    <p class="roman">Precision Kinetic Architecture</p>
-    <br>
-    <p><strong>Logistics solved. Safety absolute.</strong> 
-    Designed for the professional conservationist, The NutHatch combines an Advanced Thermal-Insert System, Passive HVAC Roofing, Optimal Ventilation and Lightweight format.</p>
-    <ul>
-        <li>Deployable Kinetic Assembly</li>
-        <li>Passive HVAC Roofing System</li>
-        <li>Integrated Thermal Insert</li>
-    </ul>
-</div>
-        </div>
-    </section>
-
-    <section class="patents">
-        <h3>Intellectual Property Portfolio</h3>
-        <p>Our technology is protected by pending United States Patents.</p>
-        <br>
-        <p class="patent-number">USPTO PATENT PENDING: Monolithic Composite Method</p>
-        <p class="patent-number">USPTO PATENT PENDING: Variable-Volume Deployment System</p>
-    </section>
-
-    <footer>
-        <h3>PERDIGNUS LLC</h3>
-        <p class="roman">TerraDignus™ | NecTerra</p>
-        <p>&copy; MMXXV Nicholas J. Law. All Rights Reserved.</p>
-    </footer>
-<script>
-    function toggleNutHatchView(state) {
-        const viewer = document.getElementById('nuthatch-viewer');
-        if (state === 'exploded') {
-            viewer.src = 'assets/nuthatch_exploded-v2-v1.glb'; // Load the spaced-apart model
-            viewer.orientation = '0deg -90deg -90deg'; // Reset orientation if needed for the exploded view
-        } else {
-            viewer.src = 'assets/nuthatch-v1.glb'; // Load the assembled model
-            viewer.orientation = '0deg -90deg -90deg'; // Keep the upright orientation (as fixed earlier)
-        }
+  <style>
+    :root {
+      --forest-green: #1a4d3e;
+      --clay: #8d7f73;
+      --off-white: #f4f4f0;
+      --black: #111;
+      --grey: #b3b3b3ff;
+      --accent-gold: #f0c46a;
     }
-</script>
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: radial-gradient(circle at top, #f7f7f2 0, #e4e1da 40%, #c8c1b7 100%);
+      color: var(--black);
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* HEADER */
+    header {
+      text-align: center;
+      padding: 1.5rem 1rem 0.5rem;
+      color: var(--black);
+    }
+
+    header .logo-container {
+      height: 52px;
+      width: auto;
+      margin-bottom: 0.5rem;
+    }
+
+    header h1 {
+      font-size: 2.2rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    header .roman {
+      font-size: 0.8rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #555;
+      margin-top: 0.1rem;
+    }
+
+    header p.tagline {
+      margin-top: 0.6rem;
+      font-size: 0.95rem;
+      color: #333;
+    }
+
+    /* LAYOUT SHELL */
+    main {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      padding: 1.5rem 1rem 2rem;
+    }
+
+    .shell {
+      width: 100%;
+      max-width: 1200px;
+      background: rgba(244, 244, 240, 0.96);
+      border-radius: 1.75rem;
+      box-shadow:
+        0 18px 40px rgba(0, 0, 0, 0.1),
+        0 0 0 1px rgba(255, 255, 255, 0.7);
+      padding: 1.75rem 2rem 2rem;
+      display: grid;
+      grid-template-columns: minmax(0, 3fr) minmax(0, 2.2fr);
+      gap: 1.75rem;
+      align-items: stretch;
+    }
+
+    @media (max-width: 880px) {
+      .shell {
+        grid-template-columns: 1fr;
+        padding: 1.5rem 1.25rem 1.75rem;
+      }
+    }
+
+    /* LEFT: 3D VIEWER */
+    .viewer-panel {
+      position: relative;
+      border-radius: 1.5rem;
+      overflow: hidden;
+      background: radial-gradient(circle at top, #f3eee8, #dcd3c7);
+      display: flex;
+      flex-direction: column;
+    }
+
+    model-viewer#nestegg-viewer {
+      width: 100%;
+      height: min(480px, 70vh);
+      --poster-color: transparent;
+      background: transparent;
+    }
+
+    /* Subtle hover / breathing animation container */
+    .viewer-breath {
+      animation: floatY 6.5s ease-in-out infinite;
+    }
+
+    @keyframes floatY {
+      0%   { transform: translateY(4px); }
+      50%  { transform: translateY(-4px); }
+      100% { transform: translateY(4px); }
+    }
+
+    /* HOTSPOTS (glowing orbs) */
+    .hotspot {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 2px solid #ffffff;
+      background: radial-gradient(circle, #ffffff 0, #ffecc0 40%, rgba(255, 255, 255, 0) 70%);
+      box-shadow:
+        0 0 12px rgba(255, 240, 200, 0.9),
+        0 0 26px rgba(255, 214, 120, 0.9),
+        0 0 40px rgba(255, 180, 60, 0.7);
+      outline: none;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .hotspot::before {
+      /* leader line */
+      content: "";
+      position: absolute;
+      left: 120%;
+      top: 50%;
+      width: 60px;
+      height: 1px;
+      background: #111;
+      transform: translateY(-50%);
+    }
+
+    .hotspot span.hotspot-label {
+      position: absolute;
+      left: 120%;
+      top: 50%;
+      transform: translate(70px, -50%);
+      white-space: nowrap;
+      font-size: 0.75rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      background: rgba(244, 244, 240, 0.9);
+      padding: 0.2rem 0.4rem;
+      border-radius: 10px;
+      border: 1px solid rgba(17, 17, 17, 0.15);
+    }
+
+    .hotspot.muted {
+      opacity: 0.15;
+      box-shadow: none;
+      background: radial-gradient(circle, #f5f5f5 0, #ddd 40%, rgba(255, 255, 255, 0) 70%);
+    }
+
+    .hotspot.active {
+      box-shadow:
+        0 0 16px rgba(255, 230, 180, 1),
+        0 0 38px rgba(255, 206, 116, 0.95);
+      transform: scale(1.1);
+    }
+
+    .viewer-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem 1rem 0.75rem 1rem;
+      border-top: 1px solid rgba(0, 0, 0, 0.05);
+      background: linear-gradient(to right, rgba(255, 255, 255, 0.9), rgba(245, 243, 238, 0.95));
+    }
+
+    .viewer-controls .title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #333;
+    }
+
+    .viewer-controls button {
+      border-radius: 999px;
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      padding: 0.4rem 0.76rem;
+      background: #ffffff;
+      cursor: pointer;
+      font-size: 0.8rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      transition: background 0.18s ease, box-shadow 0.18s ease, transform 0.08s ease;
+    }
+
+    .viewer-controls button:hover {
+      background: #f6f4ee;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+      transform: translateY(-1px);
+    }
+
+    /* RIGHT: FEATURE LIST + DESCRIPTION */
+    .details-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .details-panel h2 {
+      font-size: 1.4rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--forest-green);
+    }
+
+    .details-panel p.subtitle {
+      font-size: 0.85rem;
+      color: #444;
+      max-width: 32rem;
+    }
+
+    .feature-list {
+      margin-top: 0.5rem;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.55rem 1rem;
+    }
+
+    @media (max-width: 880px) {
+      .feature-list {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .feature-chip {
+      font-size: 0.78rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 0.35rem 0.6rem;
+      border-radius: 999px;
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      background: rgba(255, 255, 255, 0.9);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      transition: background 0.15s ease, border-color 0.15s ease, transform 0.08s ease;
+    }
+
+    .feature-chip::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--clay);
+    }
+
+    .feature-chip.active {
+      border-color: var(--forest-green);
+      background: #e1f0ea;
+    }
+
+    .feature-chip.active::before {
+      background: var(--forest-green);
+    }
+
+    .feature-description {
+      margin-top: 0.75rem;
+      padding: 0.85rem 1rem;
+      border-radius: 1rem;
+      background: linear-gradient(to bottom right, #ffffff, #f4f2ec);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      min-height: 6.5rem;
+    }
+
+    .feature-description h3 {
+      font-size: 0.95rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 0.35rem;
+    }
+
+    .feature-description p {
+      font-size: 0.85rem;
+      line-height: 1.5;
+      color: #333;
+    }
+
+    .feature-description .tagline {
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      color: #777;
+      margin-top: 0.3rem;
+    }
+
+    footer {
+      text-align: center;
+      font-size: 0.75rem;
+      padding-bottom: 0.7rem;
+      color: #444;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <img src="assets/TD HL BINDRUNE.png" alt="TerraDignus Logo" class="logo-container" />
+    <h1>TerraDignus</h1>
+    <p class="roman">EST. MMXV</p>
+    <p class="tagline">The NestEgg – Variable-Volume Wildlife Habitation System</p>
+  </header>
+
+  <main>
+    <section class="shell">
+      <!-- LEFT: 3D VIEWER + HOTSPOTS -->
+      <div class="viewer-panel">
+        <div class="viewer-breath">
+          <model-viewer id="nestegg-viewer"
+                        src="NestEggFBCR.glb"
+                        camera-controls
+                        autoplay
+                        auto-rotate
+                        auto-rotate-delay="0"
+                        rotation-per-second="10deg"
+                        exposure="1.1"
+                        shadow-intensity="0.4"
+                        camera-orbit="0deg 70deg 2.1m"
+                        camera-target="0m 0.12m 0m"
+                        field-of-view="30deg"
+                        ar
+                        ar-modes="webxr scene-viewer quick-look"
+                        disable-tap>
+            <!-- HOTSPOTS – positions are placeholders for you to fine-tune in Fusion -->
+            <button class="hotspot active"
+                    slot="hotspot-entrance"
+                    data-feature="entrance"
+                    data-position="0.25m 0.12m 0.55m"
+                    data-normal="0m 0m 1m"
+                    data-visibility-attribute="visible">
+              <span class="hotspot-label">Entrance Aperture</span>
+            </button>
+
+            <button class="hotspot"
+                    slot="hotspot-vent"
+                    data-feature="vent"
+                    data-position="0.05m 0.25m 0.4m"
+                    data-normal="0m 0m 1m"
+                    data-visibility-attribute="visible">
+              <span class="hotspot-label">Ventilation Aperture</span>
+            </button>
+
+            <button class="hotspot"
+                    slot="hotspot-drain"
+                    data-feature="drain"
+                    data-position="0m -0.25m 0.45m"
+                    data-normal="0m -1m 0m"
+                    data-visibility-attribute="visible">
+              <span class="hotspot-label">Drainage Aperture</span>
+            </button>
+
+            <button class="hotspot"
+                    slot="hotspot-joint"
+                    data-feature="joint"
+                    data-position="0.25m 0m 0.45m"
+                    data-normal="0m 0m 1m"
+                    data-visibility-attribute="visible">
+              <span class="hotspot-label">Shell Separation Joint</span>
+            </button>
+
+            <button class="hotspot"
+                    slot="hotspot-cling"
+                    data-feature="cling"
+                    data-position="-0.22m -0.05m 0.4m"
+                    data-normal="-1m 0m 0m"
+                    data-visibility-attribute="visible">
+              <span class="hotspot-label">Cling Ridge System</span>
+            </button>
+
+            <button class="hotspot"
+                    slot="hotspot-insert"
+                    data-feature="insert"
+                    data-position="0.3m 0.1m 0.5m"
+                    data-normal="0m 0m 1m"
+                    data-visibility-attribute="visible">
+              <span class="hotspot-label">Modular Entrance Insert</span>
+            </button>
+
+            <button class="hotspot"
+                    slot="hotspot-geometry"
+                    data-feature="geometry"
+                    data-position="-0.05m 0.2m 0.3m"
+                    data-normal="0m 0m 1m"
+                    data-visibility-attribute="visible">
+              <span class="hotspot-label">Ovoid Geometry</span>
+            </button>
+
+            <button class="hotspot"
+                    slot="hotspot-gutter"
+                    data-feature="gutter"
+                    data-position="-0.18m -0.05m 0.35m"
+                    data-normal="-1m 0m 0m"
+                    data-visibility-attribute="visible">
+              <span class="hotspot-label">Cling Ridge Gutter Channel</span>
+            </button>
+          </model-viewer>
+        </div>
+
+        <div class="viewer-controls">
+          <div class="title">Exploded-View Engineering Overlay</div>
+          <button id="reset-view-btn" type="button">
+            ⟲ Full View
+          </button>
+        </div>
+      </div>
+
+      <!-- RIGHT: FEATURE LIST + DESCRIPTION PANEL -->
+      <aside class="details-panel">
+        <h2>NestEgg Feature Map</h2>
+        <p class="subtitle">
+          Tap a glowing orb or select a feature on the right. The NestEgg will re-orient and zoom to that area,
+          while this panel expands with additional design detail.
+        </p>
+
+        <div class="feature-list">
+          <button class="feature-chip active" data-feature-chip="entrance">Entrance Aperture</button>
+          <button class="feature-chip" data-feature-chip="vent">Ventilation Aperture (Left)</button>
+          <button class="feature-chip" data-feature-chip="drain">Drainage Aperture</button>
+          <button class="feature-chip" data-feature-chip="joint">Shell Separation Joint</button>
+          <button class="feature-chip" data-feature-chip="cling">Cling Ridge System</button>
+          <button class="feature-chip" data-feature-chip="insert">Modular Entrance Insert</button>
+          <button class="feature-chip" data-feature-chip="geometry">Overall Ovoid Geometry</button>
+          <button class="feature-chip" data-feature-chip="gutter">Cling Ridge Gutter Channel</button>
+        </div>
+
+        <div class="feature-description" id="feature-description">
+          <h3 id="feature-title">Entrance Aperture</h3>
+          <p id="feature-body">
+            Primary ingress sized to species-specific guidelines, with a short entrance tunnel that helps deter
+            predators while keeping the internal cavity shaded and protected.
+          </p>
+          <div class="tagline" id="feature-tagline">
+            Click another feature to explore how each element collaborates to regulate climate, drainage, and security.
+          </div>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <footer>
+    TerraDignus &mdash; Variable-Volume Wildlife Habitation Systems &copy; 2015&ndash;2025
+  </footer>
+
+  <script>
+    const viewer = document.getElementById('nestegg-viewer');
+    const hotspots = Array.from(document.querySelectorAll('.hotspot'));
+    const chips = Array.from(document.querySelectorAll('.feature-chip'));
+
+    const featureTitle = document.getElementById('feature-title');
+    const featureBody = document.getElementById('feature-body');
+    const featureTagline = document.getElementById('feature-tagline');
+
+    // Camera presets & copy for each feature.
+    const FEATURES = {
+      entrance: {
+        title: 'Entrance Aperture',
+        body: 'Primary ingress to the nesting chamber. Aperture diameter can be tuned to target specific cavity-nesting species, improving occupancy while excluding larger predators.',
+        tagline: 'Species-tuned entrance geometry for protection and selectivity.',
+        orbit: '15deg 70deg 1.4m',
+        target: '0.08m 0.12m 0.45m',
+        fov: '22deg'
+      },
+      vent: {
+        title: 'Ventilation Aperture (Left)',
+        body: 'High-mounted ventilation port that exhausts warm air and allows passive cross-ventilation without exposing the cavity to direct rainfall.',
+        tagline: 'Passive HVAC behavior using simple aperture placement.',
+        orbit: '35deg 60deg 1.5m',
+        target: '0.02m 0.23m 0.32m',
+        fov: '24deg'
+      },
+      drain: {
+        title: 'Drainage Aperture',
+        body: 'Low-point drainage outlet positioned at the nadir of the ovoid shell. Any incidental moisture is directed away from the nesting surface to maintain a dry cavity.',
+        tagline: 'Keep the nest floor dry even in driving rain.',
+        orbit: '0deg 90deg 1.5m',
+        target: '0m -0.23m 0.25m',
+        fov: '24deg'
+      },
+      joint: {
+        title: 'Shell Separation Joint',
+        body: 'Circumferential separation seam between upper and lower shells. Enables tool-free access for seasonal cleaning while preserving structural continuity in normal use.',
+        tagline: 'Serviceable geometry without compromising strength.',
+        orbit: '20deg 75deg 1.7m',
+        target: '0.12m 0.02m 0.4m',
+        fov: '26deg'
+      },
+      cling: {
+        title: 'Cling Ridge System',
+        body: 'Textured radial ridges that generate frictional “cling” when the NestEgg is cinched against a support tree or post, resisting slippage without the need for fasteners.',
+        tagline: 'Tree-friendly gripping without screws or nails.',
+        orbit: '-40deg 80deg 1.7m',
+        target: '-0.22m -0.05m 0.25m',
+        fov: '24deg'
+      },
+      insert: {
+        title: 'Modular Entrance Insert',
+        body: 'Removable insert that defines the effective entrance profile. Inserts can be swapped to change species, entrance diameter, or predator-guard depth without replacing the shell.',
+        tagline: 'Swap inserts instead of replacing hardware.',
+        orbit: '10deg 65deg 1.4m',
+        target: '0.18m 0.12m 0.45m',
+        fov: '22deg'
+      },
+      geometry: {
+        title: 'Overall Ovoid Geometry',
+        body: 'Continuous ovoid shell distributes loads and sheds water efficiently. The form factor minimizes sharp corners, discouraging predator perches and cold-bridge points.',
+        tagline: 'Biomimetic form for strength, drainage, and safety.',
+        orbit: '0deg 70deg 2m',
+        target: '0m 0.12m 0m',
+        fov: '30deg'
+      },
+      gutter: {
+        title: 'Cling Ridge Gutter Channel',
+        body: 'Channel feature integrated between ridge elements to redirect rainfall away from the strapping interface and drainage outlet, reducing water intrusion at mounting points.',
+        tagline: 'Micro-gutter geometry that manages runoff at the mount.',
+        orbit: '-55deg 75deg 1.6m',
+        target: '-0.22m -0.05m 0.2m',
+        fov: '24deg'
+      }
+    };
+
+    function setActiveFeature(id) {
+      const f = FEATURES[id];
+      if (!f) return;
+
+      // Update camera
+      if (viewer) {
+        viewer.cameraOrbit = f.orbit;
+        viewer.cameraTarget = f.target;
+        viewer.fieldOfView = f.fov || '24deg';
+      }
+
+      // Update copy
+      featureTitle.textContent = f.title;
+      featureBody.textContent = f.body;
+      featureTagline.textContent = f.tagline;
+
+      // Hotspot state
+      hotspots.forEach(h => {
+        if (h.dataset.feature === id) {
+          h.classList.add('active');
+          h.classList.remove('muted');
+        } else {
+          h.classList.remove('active');
+          h.classList.add('muted');
+        }
+      });
+
+      // Chip state
+      chips.forEach(c => {
+        if (c.dataset.featureChip === id) {
+          c.classList.add('active');
+        } else {
+          c.classList.remove('active');
+        }
+      });
+    }
+
+    hotspots.forEach(h => {
+      h.addEventListener('click', () => {
+        setActiveFeature(h.dataset.feature);
+      });
+    });
+
+    chips.forEach(c => {
+      c.addEventListener('click', () => {
+        setActiveFeature(c.dataset.featureChip);
+      });
+    });
+
+    // Reset button -> full overview
+    document.getElementById('reset-view-btn').addEventListener('click', () => {
+      if (viewer) {
+        viewer.cameraOrbit = '0deg 70deg 2.1m';
+        viewer.cameraTarget = '0m 0.12m 0m';
+        viewer.fieldOfView = '30deg';
+      }
+
+      // Un-mute all hotspots, keep none "active" except entrance
+      hotspots.forEach(h => h.classList.remove('muted'));
+      setActiveFeature('entrance');
+    });
+  </script>
 </body>
 </html>
