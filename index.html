@@ -23,7 +23,7 @@
         }
 
         .hero-logo {
-            width: 110px;
+            width: 115px;
             margin-bottom: 20px;
         }
 
@@ -44,9 +44,8 @@
         #model-section {
             position: relative;
             width: 100%;
-            height: 90vh;
+            height: 92vh;
             overflow: visible;
-            background: transparent;
         }
 
         canvas {
@@ -55,11 +54,10 @@
             display: block;
         }
 
-        /* ANNOTATIONS */
         #annotation-layer {
             position: absolute;
-            top: 0;
             left: 0;
+            top: 0;
             width: 100%;
             height: 100%;
             pointer-events: none;
@@ -68,41 +66,38 @@
         .annotation {
             position: absolute;
             transform: translate(-50%, -50%);
+            pointer-events: auto;
             text-align: center;
-            pointer-events: none;
         }
 
-        .orb {
+        .dot {
             width: 16px;
             height: 16px;
-            border-radius: 50%;
             background: radial-gradient(circle, #ffe7a3, #ffb400);
-            box-shadow: 0 0 12px #ffcc66;
-            margin: 0 auto;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #ffcc66;
+            margin-bottom: 5px;
             cursor: pointer;
-            pointer-events: auto;
         }
 
         .label {
-            margin-top: 6px;
-            padding: 6px 10px;
-            background: rgba(255,255,255,0.9);
+            background: rgba(255,255,255,0.92);
             border: 1px solid #ccc;
+            padding: 6px 10px;
             border-radius: 6px;
-            font-size: 12px;
             white-space: nowrap;
-            pointer-events: auto;
+            font-size: 13px;
+            cursor: pointer;
         }
 
         /* FOOTER */
         footer {
             background: #0E4A3A;
-            color: #ffffff;
+            color: white;
             text-align: center;
             padding: 30px 20px;
-            font-size: 14px;
             letter-spacing: 2px;
-            margin-top: 50px;
+            margin-top: 40px;
         }
     </style>
 </head>
@@ -111,7 +106,7 @@
 
     <!-- HERO HEADER -->
     <header class="hero">
-        <img class="hero-logo" src="./assets/TD HL BINDRUNE small.png" alt="TerraDignus Logo" />
+        <img class="hero-logo" src="assets/TD HL BINDRUNE small.png" alt="TerraDignus Logo" />
         <h1 class="hero-title">TerraDignus</h1>
         <div class="hero-sub">EST. MMXV</div>
         <div style="margin-top: 15px; font-size: 19px; letter-spacing: 3px;">
@@ -119,7 +114,7 @@
         </div>
     </header>
 
-    <!-- MODEL VIEWER SECTION -->
+    <!-- MODEL VIEWER SECTION (THE FLOATING 3D MODEL) -->
     <section id="model-section">
         <canvas id="three-canvas"></canvas>
         <div id="annotation-layer"></div>
@@ -131,118 +126,8 @@
         © 2015–2025 Perdignus LLC. All Rights Reserved.
     </footer>
 
-    <!-- THREE.JS MODULE IMPORTS -->
-    <script type="module">
-        import * as THREE from "https://unpkg.com/three@0.158.0/build/three.module.js";
-        import { GLTFLoader } from "https://unpkg.com/three@0.158.0/examples/jsm/loaders/GLTFLoader.js";
-        import { OrbitControls } from "https://unpkg.com/three@0.158.0/examples/jsm/controls/OrbitControls.js";
-
-        const section = document.getElementById("model-section");
-        const canvas = document.getElementById("three-canvas");
-        const annotationLayer = document.getElementById("annotation-layer");
-
-        const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0xf7f7f2);
-
-        const camera = new THREE.PerspectiveCamera(
-            40,
-            section.clientWidth / section.clientHeight,
-            0.1,
-            2000
-        );
-        camera.position.set(0, 0, 15);
-
-        const renderer = new THREE.WebGLRenderer({
-            canvas,
-            antialias: true
-        });
-        renderer.setSize(section.clientWidth, section.clientHeight);
-        renderer.setPixelRatio(window.devicePixelRatio);
-
-        /* LIGHTS */
-        scene.add(new THREE.DirectionalLight(0xffffff, 1.2).position.set(5, 10, 10));
-        scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-
-        /* CONTROLS */
-        const controls = new OrbitControls(camera, renderer.domElement);
-        controls.autoRotate = true;
-        controls.autoRotateSpeed = 0.6;
-        controls.enablePan = false;
-        controls.enableDamping = true;
-
-        let model;
-
-        /* LOAD MODEL FROM ASSETS FOLDER */
-        const loader = new GLTFLoader();
-        loader.load(
-            "./assets/NestEggFBCR.glb",
-            (gltf) => {
-                model = gltf.scene;
-
-                const box = new THREE.Box3().setFromObject(model);
-                const center = box.getCenter(new THREE.Vector3());
-                model.position.sub(center);
-
-                model.scale.set(3, 3, 3);
-
-                scene.add(model);
-            },
-            undefined,
-            (err) => console.error("MODEL LOAD ERROR:", err)
-        );
-
-        /* ANNOTATIONS */
-        const features = [
-            { id: "entrance", name: "Entrance Aperture", pos: new THREE.Vector3(2.509, 0, 3.672) },
-            { id: "vent-left", name: "Ventilation Aperture (Left)", pos: new THREE.Vector3(0, -2.149, 3.849) },
-            { id: "drainage", name: "Drainage Aperture", pos: new THREE.Vector3(-0.877, 0.036, -3.951) },
-            { id: "shell-joint", name: "Shell Separation Joint", pos: new THREE.Vector3(-0.003, 0.036, -0.419) }
-        ];
-
-        const annotations = new Map();
-
-        features.forEach(f => {
-            const wrapper = document.createElement("div");
-            wrapper.className = "annotation";
-
-            const orb = document.createElement("div");
-            orb.className = "orb";
-
-            const label = document.createElement("div");
-            label.className = "label";
-            label.textContent = f.name;
-
-            wrapper.appendChild(orb);
-            wrapper.appendChild(label);
-            annotationLayer.appendChild(wrapper);
-
-            annotations.set(f.id, { wrapper, data: f });
-        });
-
-        function updateAnnotations() {
-            if (!model) return;
-
-            features.forEach(f => {
-                const entry = annotations.get(f.id);
-                const projected = f.pos.clone().project(camera);
-
-                const x = (projected.x * 0.5 + 0.5) * section.clientWidth;
-                const y = (-projected.y * 0.5 + 0.5) * section.clientHeight;
-
-                entry.wrapper.style.left = `${x}px`;
-                entry.wrapper.style.top = `${y}px`;
-            });
-        }
-
-        function animate() {
-            requestAnimationFrame(animate);
-            controls.update();
-            renderer.render(scene, camera);
-            updateAnnotations();
-        }
-
-        animate();
-    </script>
+    <!-- LOAD THE ANNOTATED VIEWER SCRIPT -->
+    <script type="module" src="annotated-nestegg.js"></script>
 
 </body>
 </html>
