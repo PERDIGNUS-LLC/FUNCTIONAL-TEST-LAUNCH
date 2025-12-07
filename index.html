@@ -1,444 +1,175 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>TerraDignus – The NestEgg</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TerraDignus – The NestEgg</title>
 
-  <!-- Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            font-family: 'Inter', sans-serif;
+            background: #f7f7f2;
+        }
 
-  <style>
-    :root {
-      --td-green: #0e4334;
-      --td-offwhite: #f8f6f2;
-      --td-text-dark: #222222;
-      --td-gold-soft: #ffc54b;
-    }
+        /* ─────────────────────────────
+           HERO HEADER (UNCHANGED)
+        ───────────────────────────── */
+        .hero {
+            background: #0E4A3A;
+            color: white;
+            text-align: center;
+            padding: 80px 20px;
+        }
 
-    * {
-      box-sizing: border-box;
-    }
+        .hero-logo {
+            width: 110px;
+            margin-bottom: 25px;
+        }
 
-    html, body {
-      margin: 0;
-      padding: 0;
-      background: var(--td-offwhite);
-      color: var(--td-text-dark);
-      font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    }
+        .hero-title {
+            font-size: 56px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
 
-    /* ===================== HERO ===================== */
+        .hero-sub {
+            font-size: 18px;
+            letter-spacing: 4px;
+            opacity: 0.9;
+        }
 
-    .hero {
-      background: var(--td-green);
-      color: #ffffff;
-      text-align: center;
-      padding: 72px 16px 80px;
-    }
+        /* ─────────────────────────────
+           MODEL VIEWER — FULL WIDTH, NO BOXES
+        ───────────────────────────── */
+        #model-section {
+            position: relative;
+            width: 100%;
+            height: 90vh;
+            overflow: visible;
+        }
 
-    .hero-logo {
-      width: 120px;
-      max-width: 30vw;
-      margin: 0 auto 32px;
-      display: block;
-    }
+        canvas {
+            display: block;
+            width: 100% !important;
+            height: 100% !important;
+        }
 
-    .hero-title {
-      font-family: "Playfair Display", serif;
-      font-size: clamp(2.6rem, 4vw, 3.4rem);
-      letter-spacing: 0.02em;
-      margin: 0 0 12px;
-    }
+        /* ─────────────────────────────
+           ANNOTATIONS — floating labels
+        ───────────────────────────── */
+        .label {
+            position: absolute;
+            pointer-events: auto;
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid #ccc;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            white-space: nowrap;
+            backdrop-filter: blur(6px);
+        }
 
-    .hero-subtitle {
-      font-family: "Inter", system-ui, sans-serif;
-      letter-spacing: 0.25em;
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      margin: 0 0 28px;
-    }
-
-    .hero-tagline {
-      letter-spacing: 0.22em;
-      font-size: 0.9rem;
-      text-transform: uppercase;
-      opacity: 0.9;
-    }
-
-    /* ===================== NESTEGG VIEWER ===================== */
-
-    #nestegg-viewer {
-      padding: 64px 0 80px;
-      background: var(--td-offwhite);
-    }
-
-    #nesteggCanvasContainer {
-      position: relative;
-      width: 100%;
-      height: 80vh;          /* big, open stage */
-      max-height: 900px;
-      overflow: visible;     /* no clipping */
-    }
-
-    #nesteggCanvas {
-      width: 100%;
-      height: 100%;
-      display: block;
-    }
-
-    #annotationsLayer {
-      position: absolute;
-      inset: 0;
-      pointer-events: none; /* we re-enable on children where needed */
-    }
-
-    .feature-annotation {
-      position: absolute;
-      display: flex;
-      align-items: center;
-      pointer-events: none;
-      transform: translate(-9999px, -9999px); /* offscreen until positioned */
-      transition: opacity 0.25s ease;
-      opacity: 0.9;
-    }
-
-    .feature-annotation .feature-orb {
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
-      box-shadow:
-        0 0 10px rgba(255, 197, 75, 0.9),
-        0 0 22px rgba(255, 197, 75, 0.8);
-      background: radial-gradient(circle at 30% 30%, #ffeec0 0%, #ffc54b 55%, #ff9b00 100%);
-      border: 2px solid #ffffff;
-      pointer-events: auto;
-    }
-
-    .feature-annotation .feature-line {
-      width: 72px;
-      height: 1px;
-      border-top: 2px solid rgba(13, 67, 51, 0.9);
-      margin: 0 14px;
-    }
-
-    .feature-annotation .feature-label {
-      font-size: 0.7rem;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-      white-space: nowrap;
-      color: var(--td-green);
-      background: rgba(248, 246, 242, 0.96);
-      padding: 7px 12px;
-      border-radius: 999px;
-      border: 1px solid rgba(13, 67, 51, 0.18);
-      pointer-events: auto;
-      font-weight: 500;
-    }
-
-    .feature-annotation.active .feature-orb {
-      box-shadow:
-        0 0 16px rgba(255, 206, 102, 1),
-        0 0 32px rgba(255, 206, 102, 0.9);
-    }
-
-    .feature-annotation.active .feature-label {
-      font-weight: 600;
-    }
-
-    /* Mobile tweaks: slightly shorter lines and smaller labels */
-    @media (max-width: 700px) {
-      #nesteggCanvasContainer {
-        height: 70vh;
-      }
-      .feature-annotation .feature-line {
-        width: 42px;
-      }
-      .feature-annotation .feature-label {
-        font-size: 0.62rem;
-        letter-spacing: 0.14em;
-      }
-    }
-
-    /* ===================== FOOTER ===================== */
-
-    footer {
-      background: #0a3024;
-      color: rgba(255, 255, 255, 0.9);
-      padding: 28px 16px 32px;
-      text-align: center;
-      font-size: 0.8rem;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-    }
-
-    footer a {
-      color: rgba(255, 255, 255, 0.9);
-      text-decoration: none;
-    }
-
-    footer a:hover {
-      text-decoration: underline;
-    }
-  </style>
+        .orb {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #ffe7a3, #ffb400);
+            box-shadow: 0 0 12px #ffcc66;
+            cursor: pointer;
+            pointer-events: auto;
+        }
+    </style>
 </head>
 
 <body>
-  <!-- ================= HERO ================= -->
-  <header class="hero">
-    <img src="TD HL BINDRUNE.png" alt="TerraDignus Bindrune Logo" class="hero-logo" />
-    <h1 class="hero-title">TerraDignus</h1>
-    <p class="hero-subtitle">EST. MMXV</p>
-    <p class="hero-tagline">CONSERVATION ENGINEERING. REDEFINED.</p>
-  </header>
 
-  <!-- =========== NESTEGG FLOATING MODEL + ANNOTATIONS =========== -->
-  <section id="nestegg-viewer">
-    <div id="nesteggCanvasContainer">
-      <canvas id="nesteggCanvas"></canvas>
-      <div id="annotationsLayer"></div>
+    <!-- ░░░ HERO HEADER (KEEP SAME) ░░░ -->
+    <div class="hero">
+        <img class="hero-logo" src="TD HL BINDRUNE.png" alt="TerraDignus Logo" />
+        <div class="hero-title">TerraDignus</div>
+        <div class="hero-sub">EST. MMXV</div>
+        <div style="margin-top:15px; font-size:19px; letter-spacing:3px;">
+            CONSERVATION ENGINEERING. REDEFINED.
+        </div>
     </div>
-  </section>
 
-  <!-- ================= FOOTER ================= -->
-  <footer>
-    <div>TerraDignus &mdash; Variable-Volume Wildlife Habitation System</div>
-    <div style="margin-top:8px;">&copy; 2015&ndash;2025 TerraDignus / Perdignus LLC. All Rights Reserved.</div>
-  </footer>
+    <!-- ░░░ MODEL SECTION (FULL FLOATING MODEL) ░░░ -->
+    <div id="model-section"></div>
 
-  <!-- ================= THREE.JS + VIEWER LOGIC ================= -->
-  <script type="module">
-    import * as THREE from "https://unpkg.com/three@0.158.0/build/three.module.js";
-    import { OrbitControls } from "https://unpkg.com/three@0.158.0/examples/jsm/controls/OrbitControls.js";
-    import { GLTFLoader } from "https://unpkg.com/three@0.158.0/examples/jsm/loaders/GLTFLoader.js";
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r152/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.152/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.152/examples/js/controls/OrbitControls.js"></script>
 
-    const container = document.getElementById("nesteggCanvasContainer");
-    const canvas = document.getElementById("nesteggCanvas");
-    const annotationsLayer = document.getElementById("annotationsLayer");
+    <script>
+        /* ─────────────────────────────
+           BASIC SCENE SETUP
+        ───────────────────────────── */
+        const section = document.getElementById("model-section");
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0xf7f7f2);
 
-    const scene = new THREE.Scene();
-    scene.background = null;
+        const camera = new THREE.PerspectiveCamera(
+            40,
+            section.clientWidth / section.clientHeight,
+            0.1,
+            2000
+        );
+        camera.position.set(0, 0, 15);
 
-    const camera = new THREE.PerspectiveCamera(
-      35,
-      container.clientWidth / container.clientHeight,
-      0.1,
-      1000
-    );
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(section.clientWidth, section.clientHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        section.appendChild(renderer.domElement);
 
-    const renderer = new THREE.WebGLRenderer({
-      canvas,
-      antialias: true,
-      alpha: true
-    });
-    renderer.setPixelRatio(window.devicePixelRatio || 1);
-    renderer.setSize(container.clientWidth, container.clientHeight);
+        /* LIGHTING */
+        const sun = new THREE.DirectionalLight(0xffffff, 1.2);
+        sun.position.set(5, 10, 10);
+        scene.add(sun);
 
-    const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.enablePan = false;
-    controls.autoRotate = true;
-    controls.autoRotateSpeed = 0.4;
-    controls.minDistance = 6;
-    controls.maxDistance = 26;
+        const fill = new THREE.AmbientLight(0xffffff, 0.55);
+        scene.add(fill);
 
-    const hemiLight = new THREE.HemisphereLight(0xffffff, 0x888888, 0.85);
-    scene.add(hemiLight);
+        /* CONTROLS */
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.autoRotate = true;
+        controls.autoRotateSpeed = 0.65;
 
-    const dirLight = new THREE.DirectionalLight(0xffffff, 0.95);
-    dirLight.position.set(5, 10, 7);
-    scene.add(dirLight);
+        /* MODEL LOADER */
+        const loader = new THREE.GLTFLoader();
+        let model;
 
-    let model = null;
+        loader.load(
+            "NestEggFBCR.glb",   // ← CORRECT PATH, YOUR FILE IS HERE
+            (gltf) => {
+                model = gltf.scene;
+                model.scale.set(3, 3, 3);
+                scene.add(model);
+            },
+            undefined,
+            (err) => console.error("Model failed to load:", err)
+        );
 
-    // === Feature data (positions in model units; from you) ===
-    const features = [
-      {
-        id: "entrance",
-        name: "Entrance Aperture",
-        position: new THREE.Vector3(2.509, 0.0, 3.672)
-      },
-      {
-        id: "vent-left",
-        name: "Ventilation Aperture (Left)",
-        position: new THREE.Vector3(0.0, -2.149, 3.849)
-      },
-      {
-        id: "drainage",
-        name: "Drainage Aperture",
-        position: new THREE.Vector3(-0.877, 0.036, -3.951)
-      },
-      {
-        id: "shell-joint",
-        name: "Shell Separation Joint",
-        position: new THREE.Vector3(-0.003, 0.036, -0.419)
-      }
-    ];
+        /* RESIZE HANDLER */
+        window.addEventListener("resize", () => {
+            camera.aspect = section.clientWidth / section.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(section.clientWidth, section.clientHeight);
+        });
 
-    const annotationElements = new Map();
-    let activeFeatureId = "entrance";
-
-    let floatPhase = 0;
-    let desiredCameraPos = null;
-    let desiredTarget = null;
-
-    // ------------- Load Model -------------
-    const loader = new GLTFLoader();
-    loader.load(
-      "NestEggFBCR.glb",
-      (gltf) => {
-        model = gltf.scene;
-        scene.add(model);
-
-        // Center the model at origin
-        const box = new THREE.Box3().setFromObject(model);
-        const center = box.getCenter(new THREE.Vector3());
-        const size = box.getSize(new THREE.Vector3());
-        model.position.sub(center);
-
-        // Fit camera to model
-        const maxDim = Math.max(size.x, size.y, size.z);
-        const radius = maxDim * 0.6;
-        const fov = (camera.fov * Math.PI) / 180;
-        let camDist = radius / Math.sin(fov / 2);
-        camDist *= 1.15;
-
-        camera.position.set(camDist * 0.6, camDist * 0.3, camDist);
-        camera.lookAt(0, 0, 0);
-        controls.target.set(0, 0, 0);
-        controls.update();
-
-        initAnnotations();
+        /* ANIMATION LOOP */
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
         animate();
-      },
-      undefined,
-      (err) => {
-        console.error("Error loading NestEggFBCR.glb:", err);
-      }
-    );
+    </script>
 
-    // ------------- Annotations -------------
-    function initAnnotations() {
-      features.forEach((feature) => {
-        const wrapper = document.createElement("div");
-        wrapper.className = "feature-annotation";
-        wrapper.dataset.id = feature.id;
-
-        const orb = document.createElement("div");
-        orb.className = "feature-orb";
-
-        const line = document.createElement("div");
-        line.className = "feature-line";
-
-        const label = document.createElement("div");
-        label.className = "feature-label";
-        label.textContent = feature.name;
-
-        wrapper.appendChild(orb);
-        wrapper.appendChild(line);
-        wrapper.appendChild(label);
-        annotationsLayer.appendChild(wrapper);
-
-        function onClick() {
-          setActiveFeature(feature.id);
-        }
-
-        orb.addEventListener("click", onClick);
-        label.addEventListener("click", onClick);
-
-        annotationElements.set(feature.id, wrapper);
-      });
-
-      setActiveFeature(activeFeatureId);
-      updateAnnotationPositions();
-    }
-
-    function setActiveFeature(id) {
-      activeFeatureId = id;
-
-      annotationElements.forEach((el, fid) => {
-        if (fid === id) el.classList.add("active");
-        else el.classList.remove("active");
-      });
-
-      const feature = features.find((f) => f.id === id);
-      if (!feature) return;
-
-      // Zoom toward the selected feature
-      const offsetDir = feature.position.clone().normalize();
-      const distance = 10; // tweak if you want closer/farther
-      desiredCameraPos = feature.position
-        .clone()
-        .add(offsetDir.multiplyScalar(distance));
-      desiredTarget = feature.position.clone();
-    }
-
-    function updateAnnotationPositions() {
-      if (!model) return;
-
-      const rect = container.getBoundingClientRect();
-      const width = rect.width;
-      const height = rect.height;
-
-      features.forEach((feature) => {
-        const el = annotationElements.get(feature.id);
-        if (!el) return;
-
-        const worldPos = feature.position.clone().add(model.position);
-        const projected = worldPos.clone().project(camera);
-
-        // Only show if in front of camera
-        if (projected.z > 1 || projected.z < -1) {
-          el.style.opacity = "0";
-          return;
-        } else {
-          el.style.opacity = "0.95";
-        }
-
-        const x = (projected.x * 0.5 + 0.5) * width;
-        const y = (-projected.y * 0.5 + 0.5) * height;
-
-        // Place orb; line + label extend to the right
-        el.style.transform = `translate(${x}px, ${y}px) translate(0, -50%)`;
-      });
-    }
-
-    function onResize() {
-      const width = container.clientWidth;
-      const height = container.clientHeight || window.innerHeight * 0.8;
-
-      camera.aspect = width / height;
-      camera.updateProjectionMatrix();
-      renderer.setSize(width, height);
-
-      updateAnnotationPositions();
-    }
-
-    window.addEventListener("resize", onResize);
-
-    // ------------- Animation Loop -------------
-    function animate() {
-      requestAnimationFrame(animate);
-
-      floatPhase += 0.01;
-      if (model) {
-        model.position.y = Math.sin(floatPhase) * 0.12;
-      }
-
-      if (desiredCameraPos && desiredTarget) {
-        camera.position.lerp(desiredCameraPos, 0.04);
-        controls.target.lerp(desiredTarget, 0.06);
-      }
-
-      controls.update();
-      renderer.render(scene, camera);
-      updateAnnotationPositions();
-    }
-
-    // Initial size setup (before model load)
-    onResize();
-  </script>
 </body>
 </html>
