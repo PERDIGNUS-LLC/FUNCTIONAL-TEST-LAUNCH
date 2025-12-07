@@ -14,9 +14,7 @@
             font-family: "Inter", sans-serif;
         }
 
-        /* ─────────────────────────────
-           HERO HEADER
-        ───────────────────────────── */
+        /* HERO HEADER */
         .hero {
             background: #0E4A3A;
             color: white;
@@ -26,7 +24,6 @@
 
         .hero-logo {
             width: 110px;
-            height: auto;
             margin-bottom: 20px;
         }
 
@@ -43,9 +40,7 @@
             opacity: 0.9;
         }
 
-        /* ─────────────────────────────
-           MODEL AREA (FULL WIDTH)
-        ───────────────────────────── */
+        /* MODEL AREA */
         #model-section {
             position: relative;
             width: 100%;
@@ -58,19 +53,12 @@
             height: 100% !important;
             display: block;
         }
-        /* Annotation labels + orbs */
-#model-section div {
-    pointer-events: none;
-}
 
-#model-section div > * {
-    pointer-events: auto;
-}
+        /* ANNOTATION INTERACTION FIXES */
+        #model-section div { pointer-events: none; }
+        #model-section div > * { pointer-events: auto; }
 
-
-        /* ─────────────────────────────
-           FOOTER
-        ───────────────────────────── */
+        /* FOOTER */
         footer {
             background: #0E4A3A;
             color: #ffffff;
@@ -84,7 +72,7 @@
 
 <body>
 
-    <!-- ░░░ HERO HEADER ░░░ -->
+    <!-- HERO HEADER -->
     <header class="hero">
         <img class="hero-logo" src="TD HL BINDRUNE.png" alt="TerraDignus Logo" />
         <h1 class="hero-title">TerraDignus</h1>
@@ -94,30 +82,29 @@
         </div>
     </header>
 
-    <!-- ░░░ FULL-BLEED MODEL VIEWER ░░░ -->
-    <section id="model-section"></section>
+    <!-- MODEL VIEWER -->
+    <section id="model-section">
+        <canvas id="three-canvas"></canvas>
+    </section>
 
-    <!-- ░░░ FOOTER ░░░ -->
+    <!-- FOOTER -->
     <footer>
         TerraDignus — Variable-Volume Wildlife Habitation System<br>
         © 2015–2025 Perdignus LLC. All Rights Reserved.
     </footer>
 
-    <!-- ───────────────────────────────
-         THREE.JS — OFFICIAL MODULE IMPORTS
-         (UNPKG = reliable AF)
-    ─────────────────────────────── -->
-    
+    <!-- ============================
+         THREE.JS MODULE IMPORTS
+    ============================== -->
     <script type="module">
+        /* IMPORT THREE, LOADER, CONTROLS — FULL URL IMPORTS ONLY */
         import * as THREE from "https://unpkg.com/three@0.158.0/build/three.module.js";
         import { GLTFLoader } from "https://unpkg.com/three@0.158.0/examples/jsm/loaders/GLTFLoader.js";
         import { OrbitControls } from "https://unpkg.com/three@0.158.0/examples/jsm/controls/OrbitControls.js";
 
-        /* -------------------------------
-           BASIC SCENE SETUP
-        --------------------------------*/
+        /* SCENE SETUP */
         const section = document.getElementById("model-section");
-
+        const canvas = document.getElementById("three-canvas");
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0xf7f7f2);
 
@@ -130,199 +117,140 @@
         camera.position.set(0, 0, 15);
 
         const renderer = new THREE.WebGLRenderer({
+            canvas,
             antialias: true
         });
         renderer.setSize(section.clientWidth, section.clientHeight);
         renderer.setPixelRatio(window.devicePixelRatio);
-        section.appendChild(renderer.domElement);
 
-        /* -------------------------------
-           LIGHTING
-        --------------------------------*/
-        const sun = new THREE.DirectionalLight(0xffffff, 1.15);
-        sun.position.set(5, 10, 10);
-        scene.add(sun);
+        /* LIGHTING */
+        scene.add(new THREE.DirectionalLight(0xffffff, 1.2).position.set(5, 10, 10));
+        scene.add(new THREE.AmbientLight(0xffffff, 0.55));
 
-        const ambient = new THREE.AmbientLight(0xffffff, 0.55);
-        scene.add(ambient);
-
-        /* -------------------------------
-           CONTROLS
-        --------------------------------*/
+        /* CONTROLS */
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
         controls.autoRotate = true;
         controls.autoRotateSpeed = 0.7;
         controls.enablePan = false;
 
-        /* -------------------------------
-           LOAD THE REAL MODEL
-           ✔ MUST MATCH EXACT FILENAME
-           ✔ You said it's in repo root
-        --------------------------------*/
-        const loader = new GLTFLoader();
         let model;
 
+        /* LOAD MODEL */
+        const loader = new GLTFLoader();
         loader.load(
             "NestEggFBCR.glb",
             (gltf) => {
                 model = gltf.scene;
-                //---------------------------------------------
-// FEATURE POINTS (your coordinates in inches)
-//---------------------------------------------
-const features = [
-    {
-        id: "entrance",
-        name: "Entrance Aperture",
-        pos: new THREE.Vector3(2.509, 0.00, 3.672)
-    },
-    {
-        id: "vent-left",
-        name: "Ventilation Aperture (Left)",
-        pos: new THREE.Vector3(0.0, -2.149, 3.849)
-    },
-    {
-        id: "drainage",
-        name: "Drainage Aperture",
-        pos: new THREE.Vector3(-0.877, 0.036, -3.951)
-    },
-    {
-        id: "shell-joint",
-        name: "Shell Separation Joint",
-        pos: new THREE.Vector3(-0.003, 0.036, -0.419)
-    }
-];
 
-const annotationLayer = document.createElement("div");
-annotationLayer.style.position = "absolute";
-annotationLayer.style.left = "0";
-annotationLayer.style.top = "0";
-annotationLayer.style.width = "100%";
-annotationLayer.style.height = "100%";
-annotationLayer.style.pointerEvents = "none";
-annotationLayer.style.overflow = "visible";
-document.getElementById("model-section").appendChild(annotationLayer);
-
-const annotations = new Map();
-
-// Create DOM elements for each feature
-features.forEach(f => {
-    const wrapper = document.createElement("div");
-    wrapper.style.position = "absolute";
-    wrapper.style.transform = "translate(-50%, -50%)";
-    wrapper.style.pointerEvents = "none";
-
-    const orb = document.createElement("div");
-    orb.style.width = "16px";
-    orb.style.height = "16px";
-    orb.style.borderRadius = "50%";
-    orb.style.background = "radial-gradient(circle, #ffe7a3, #ffb400)";
-    orb.style.boxShadow = "0 0 12px #ffcc66";
-    orb.style.pointerEvents = "auto";
-    orb.style.cursor = "pointer";
-
-    const label = document.createElement("div");
-    label.textContent = f.name;
-    label.style.marginTop = "8px";
-    label.style.padding = "6px 10px";
-    label.style.background = "rgba(255,255,255,0.9)";
-    label.style.border = "1px solid #ccc";
-    label.style.borderRadius = "6px";
-    label.style.fontSize = "12px";
-    label.style.pointerEvents = "auto";
-    label.style.cursor = "pointer";
-    label.style.whiteSpace = "nowrap";
-
-    wrapper.appendChild(orb);
-    wrapper.appendChild(label);
-    annotationLayer.appendChild(wrapper);
-
-    annotations.set(f.id, { element: wrapper, data: f });
-
-    // Interaction → zoom-to-feature
-    orb.addEventListener("click", () => zoomToFeature(f));
-    label.addEventListener("click", () => zoomToFeature(f));
-});
-
-//------------------------------
-// UPDATE ANNOTATION POSITIONS
-//------------------------------
-function updateAnnotations() {
-    features.forEach(f => {
-        const entry = annotations.get(f.id);
-        if (!entry) return;
-
-        const screenPos = f.pos.clone().project(camera);
-
-        const x = (screenPos.x * .5 + .5) * section.clientWidth;
-        const y = (-screenPos.y * .5 + .5) * section.clientHeight;
-
-        entry.element.style.left = `${x}px`;
-        entry.element.style.top = `${y}px`;
-
-        // Hide if behind camera
-        entry.element.style.display = (screenPos.z < 1) ? "block" : "none";
-    });
-}
-
-//------------------------------
-// ZOOM-TO-FEATURE LOGIC
-//------------------------------
-let zoomTargetPos = null;
-let zoomTargetLook = null;
-
-function zoomToFeature(f) {
-    controls.autoRotate = false;
-
-    const dir = f.pos.clone().normalize();
-    zoomTargetPos = f.pos.clone().add(dir.multiplyScalar(6));
-    zoomTargetLook = f.pos.clone();
-}
-
-// call updateAnnotations in your render loop
-
-
-                // Normalize scale & center
-                model.scale.set(3, 3, 3);
-
-                // Center the model at origin
                 const box = new THREE.Box3().setFromObject(model);
                 const center = box.getCenter(new THREE.Vector3());
                 model.position.sub(center);
+                model.scale.set(3, 3, 3);
 
                 scene.add(model);
             },
             undefined,
-            (err) => console.error("FAILED TO LOAD MODEL:", err)
+            (err) => console.error("MODEL LOAD FAILED:", err)
         );
 
-        /* -------------------------------
-           RESPONSIVE RESIZING
-        --------------------------------*/
-        window.addEventListener("resize", () => {
-            camera.aspect = section.clientWidth / section.clientHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(section.clientWidth, section.clientHeight);
+        /* ==============
+           ANNOTATIONS
+        ===============*/
+        const annotationLayer = document.createElement("div");
+        annotationLayer.style.position = "absolute";
+        annotationLayer.style.left = "0";
+        annotationLayer.style.top = "0";
+        annotationLayer.style.width = "100%";
+        annotationLayer.style.height = "100%";
+        annotationLayer.style.pointerEvents = "none";
+        section.appendChild(annotationLayer);
+
+        const features = [
+            { id: "entrance",   name: "Entrance Aperture",           pos: new THREE.Vector3(2.509, 0.00, 3.672) },
+            { id: "vent-left",  name: "Ventilation Aperture (Left)", pos: new THREE.Vector3(0.0, -2.149, 3.849) },
+            { id: "drainage",   name: "Drainage Aperture",           pos: new THREE.Vector3(-0.877, 0.036, -3.951) },
+            { id: "shell-joint",name: "Shell Separation Joint",      pos: new THREE.Vector3(-0.003, 0.036, -0.419) }
+        ];
+
+        const annotations = new Map();
+        let zoomTargetPos = null;
+        let zoomTargetLook = null;
+
+        /* CREATE ANNOTATIONS */
+        features.forEach(f => {
+            const wrapper = document.createElement("div");
+            wrapper.style.position = "absolute";
+            wrapper.style.transform = "translate(-50%, -50%)";
+
+            const orb = document.createElement("div");
+            orb.style.width = "16px";
+            orb.style.height = "16px";
+            orb.style.borderRadius = "50%";
+            orb.style.background = "radial-gradient(circle, #ffe7a3, #ffb400)";
+            orb.style.boxShadow = "0 0 12px #ffcc66";
+            orb.style.cursor = "pointer";
+
+            const label = document.createElement("div");
+            label.textContent = f.name;
+            label.style.marginTop = "6px";
+            label.style.padding = "6px 10px";
+            label.style.borderRadius = "6px";
+            label.style.background = "rgba(255,255,255,0.9)";
+            label.style.border = "1px solid #ccc";
+            label.style.fontSize = "12px";
+            label.style.whiteSpace = "nowrap";
+            label.style.cursor = "pointer";
+
+            wrapper.appendChild(orb);
+            wrapper.appendChild(label);
+            annotationLayer.appendChild(wrapper);
+
+            orb.addEventListener("click", () => zoomToFeature(f));
+            label.addEventListener("click", () => zoomToFeature(f));
+
+            annotations.set(f.id, { element: wrapper, data: f });
         });
 
-        /* -------------------------------
-           RENDER LOOP
-        --------------------------------*/
-       function animate() {
-    requestAnimationFrame(animate);
+        function zoomToFeature(f) {
+            controls.autoRotate = false;
 
-    // Smooth camera zoom toward a feature if selected
-    if (zoomTargetPos && zoomTargetLook) {
-        camera.position.lerp(zoomTargetPos, 0.05);
-        controls.target.lerp(zoomTargetLook, 0.05);
-    }
+            const dir = f.pos.clone().normalize();
+            zoomTargetPos = f.pos.clone().add(dir.multiplyScalar(6));
+            zoomTargetLook = f.pos.clone();
+        }
 
-    controls.update();
-    renderer.render(scene, camera);
+        function updateAnnotations() {
+            if (!model) return;
 
-    updateAnnotations();
-}
+            features.forEach(f => {
+                const entry = annotations.get(f.id);
+                if (!entry) return;
 
+                const screen = f.pos.clone().project(camera);
+                const x = (screen.x * 0.5 + 0.5) * section.clientWidth;
+                const y = (-screen.y * 0.5 + 0.5) * section.clientHeight;
+
+                entry.element.style.left = `${x}px`;
+                entry.element.style.top = `${y}px`;
+                entry.element.style.display = (screen.z < 1) ? "block" : "none";
+            });
+        }
+
+        /* ANIMATION LOOP */
+        function animate() {
+            requestAnimationFrame(animate);
+
+            if (zoomTargetPos) {
+                camera.position.lerp(zoomTargetPos, 0.05);
+                controls.target.lerp(zoomTargetLook, 0.05);
+            }
+
+            controls.update();
+            renderer.render(scene, camera);
+
+            updateAnnotations();
+        }
 
         animate();
     </script>
