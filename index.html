@@ -1,341 +1,444 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TerraDignus | Advanced Wildlife Habitation</title>
+  <meta charset="UTF-8" />
+  <title>TerraDignus – The NestEgg</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <!-- model-viewer for .glb -->
-    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 
-    <style>
-        /* --- RESET & VARIABLES --- */
-        :root {
-            --forest-green: #1A4D3E; /* Brand Green */
-            --clay: #8D7F73;         /* NecTerra vibe */
-            --off-white: #F4F4F0;
-            --black: #111;
-            --grey: #b3b3b3ff;       /* The Bio-Seal Color */
-            --orb-color: #FFD26F;
-        }
+  <style>
+    :root {
+      --td-green: #0e4334;
+      --td-offwhite: #f8f6f2;
+      --td-text-dark: #222222;
+      --td-gold-soft: #ffc54b;
+    }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-        }
+    * {
+      box-sizing: border-box;
+    }
 
-        body {
-            background-color: var(--off-white);
-            color: var(--black);
-            line-height: 1.6;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--td-offwhite);
+      color: var(--td-text-dark);
+      font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
 
-        h1, h2, h3 {
-            font-weight: 700;
-            letter-spacing: -0.05em;
-        }
+    /* ===================== HERO ===================== */
 
-        .roman {
-            font-family: 'Times New Roman', serif;
-            letter-spacing: 0.1em;
-        }
+    .hero {
+      background: var(--td-green);
+      color: #ffffff;
+      text-align: center;
+      padding: 72px 16px 80px;
+    }
 
-        /* --- HERO SECTION (UNCHANGED) --- */
-        header {
-            height: 90vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            background: var(--forest-green);
-            color: white;
-            padding: 2rem;
-        }
+    .hero-logo {
+      width: 120px;
+      max-width: 30vw;
+      margin: 0 auto 32px;
+      display: block;
+    }
 
-        .logo-container {
-            max-width: 125px;
-            margin-bottom: .8rem;
-            margin-top: 20px;
-        }
+    .hero-title {
+      font-family: "Playfair Display", serif;
+      font-size: clamp(2.6rem, 4vw, 3.4rem);
+      letter-spacing: 0.02em;
+      margin: 0 0 12px;
+    }
 
-        header h1 {
-            font-size: 4rem;
-            margin-bottom: 0.5rem;
-        }
+    .hero-subtitle {
+      font-family: "Inter", system-ui, sans-serif;
+      letter-spacing: 0.25em;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      margin: 0 0 28px;
+    }
 
-        header p {
-            font-size: 1.2rem;
-            opacity: 0.8;
-            letter-spacing: 0.2em;
-            text-transform: uppercase;
-        }
+    .hero-tagline {
+      letter-spacing: 0.22em;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      opacity: 0.9;
+    }
 
-        /* --- ANNOTATED NESTEGG SECTION --- */
-        main {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
+    /* ===================== NESTEGG VIEWER ===================== */
 
-        .nestegg-section {
-            /* transparent background as requested */
-            padding: 4rem 1.5rem 3rem;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+    #nestegg-viewer {
+      padding: 64px 0 80px;
+      background: var(--td-offwhite);
+    }
 
-        .nestegg-wrap {
-            position: relative;
-            width: min(900px, 100%);
-            aspect-ratio: 4 / 3;
-            margin: 0 auto;
-            /* No visible box / container styling */
-        }
+    #nesteggCanvasContainer {
+      position: relative;
+      width: 100%;
+      height: 80vh;          /* big, open stage */
+      max-height: 900px;
+      overflow: visible;     /* no clipping */
+    }
 
-        model-viewer#nestegg-viewer {
-            width: 100%;
-            height: 100%;
-            --poster-color: transparent;
-            background: transparent;
-        }
+    #nesteggCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
 
-        /* subtle float animation so it feels alive, not dead */
-        .float-anim {
-            animation: floatY 6s ease-in-out infinite;
-        }
+    #annotationsLayer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none; /* we re-enable on children where needed */
+    }
 
-        @keyframes floatY {
-            0%   { transform: translateY(4px); }
-            50%  { transform: translateY(-4px); }
-            100% { transform: translateY(4px); }
-        }
+    .feature-annotation {
+      position: absolute;
+      display: flex;
+      align-items: center;
+      pointer-events: none;
+      transform: translate(-9999px, -9999px); /* offscreen until positioned */
+      transition: opacity 0.25s ease;
+      opacity: 0.9;
+    }
 
-        /* --- HOTSPOTS: glowing orbs + line + label --- */
-        .hotspot {
-            position: relative;
-            width: 18px;
-            height: 18px;
-            border-radius: 999px;
-            border: 2px solid #fff7dd;
-            background: radial-gradient(circle, #ffffff 0, var(--orb-color) 45%, rgba(255, 255, 255, 0) 80%);
-            box-shadow:
-                0 0 10px rgba(255, 210, 111, 0.9),
-                0 0 24px rgba(255, 210, 111, 0.7);
-            outline: none;
-            cursor: pointer;
-        }
+    .feature-annotation .feature-orb {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      box-shadow:
+        0 0 10px rgba(255, 197, 75, 0.9),
+        0 0 22px rgba(255, 197, 75, 0.8);
+      background: radial-gradient(circle at 30% 30%, #ffeec0 0%, #ffc54b 55%, #ff9b00 100%);
+      border: 2px solid #ffffff;
+      pointer-events: auto;
+    }
 
-        .hotspot::before {
-            /* leader line from orb toward label */
-            content: "";
-            position: absolute;
-            left: 110%;
-            top: 50%;
-            width: 70px;
-            height: 1px;
-            background: rgba(17, 17, 17, 0.7);
-            transform: translateY(-50%);
-        }
+    .feature-annotation .feature-line {
+      width: 72px;
+      height: 1px;
+      border-top: 2px solid rgba(13, 67, 51, 0.9);
+      margin: 0 14px;
+    }
 
-        .hotspot-label {
-            position: absolute;
-            left: 110%;
-            top: 50%;
-            transform: translate(72px, -50%);
-            white-space: nowrap;
-            font-size: 0.78rem;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-            padding: 0.2rem 0.55rem;
-            border-radius: 999px;
-            background: rgba(244, 244, 240, 0.96);
-            border: 1px solid rgba(0, 0, 0, 0.12);
-            color: var(--forest-green);
-        }
+    .feature-annotation .feature-label {
+      font-size: 0.7rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      color: var(--td-green);
+      background: rgba(248, 246, 242, 0.96);
+      padding: 7px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(13, 67, 51, 0.18);
+      pointer-events: auto;
+      font-weight: 500;
+    }
 
-        .hotspot.active {
-            box-shadow:
-                0 0 14px rgba(255, 230, 170, 1),
-                0 0 32px rgba(255, 210, 111, 0.95);
-            transform: scale(1.05);
-        }
+    .feature-annotation.active .feature-orb {
+      box-shadow:
+        0 0 16px rgba(255, 206, 102, 1),
+        0 0 32px rgba(255, 206, 102, 0.9);
+    }
 
-        .hotspot.dimmed {
-            opacity: 0.2;
-            box-shadow: none;
-        }
+    .feature-annotation.active .feature-label {
+      font-weight: 600;
+    }
 
-        /* On small screens, keep labels a bit quieter */
-        @media (max-width: 768px) {
-            .hotspot::before {
-                width: 40px;
-            }
-            .hotspot-label {
-                font-size: 0.7rem;
-                transform: translate(46px, -50%);
-            }
-        }
+    /* Mobile tweaks: slightly shorter lines and smaller labels */
+    @media (max-width: 700px) {
+      #nesteggCanvasContainer {
+        height: 70vh;
+      }
+      .feature-annotation .feature-line {
+        width: 42px;
+      }
+      .feature-annotation .feature-label {
+        font-size: 0.62rem;
+        letter-spacing: 0.14em;
+      }
+    }
 
-        /* --- FOOTER --- */
-        footer {
-            text-align: center;
-            padding: 1.5rem 1rem 2rem;
-            font-size: 0.8rem;
-            color: rgba(0, 0, 0, 0.6);
-        }
-    </style>
+    /* ===================== FOOTER ===================== */
+
+    footer {
+      background: #0a3024;
+      color: rgba(255, 255, 255, 0.9);
+      padding: 28px 16px 32px;
+      text-align: center;
+      font-size: 0.8rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    footer a {
+      color: rgba(255, 255, 255, 0.9);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
 </head>
+
 <body>
+  <!-- ================= HERO ================= -->
+  <header class="hero">
+    <img src="TD HL BINDRUNE.png" alt="TerraDignus Bindrune Logo" class="hero-logo" />
+    <h1 class="hero-title">TerraDignus</h1>
+    <p class="hero-subtitle">EST. MMXV</p>
+    <p class="hero-tagline">CONSERVATION ENGINEERING. REDEFINED.</p>
+  </header>
 
-    <!-- HERO (unchanged) -->
-    <header>
-        <img src="assets/TD HL BINDRUNE.png" alt="TerraDignus Logo" class="logo-container">
-        <h1>TerraDignus</h1>
-        <p class="roman">EST. MMXV</p>
-        <br>
-        <p>Conservation Engineering. Redefined.</p>
-    </header>
+  <!-- =========== NESTEGG FLOATING MODEL + ANNOTATIONS =========== -->
+  <section id="nestegg-viewer">
+    <div id="nesteggCanvasContainer">
+      <canvas id="nesteggCanvas"></canvas>
+      <div id="annotationsLayer"></div>
+    </div>
+  </section>
 
-    <!-- FLOATING ANNOTATED NESTEGG MODEL -->
-    <main>
-        <section class="nestegg-section">
-            <div class="nestegg-wrap float-anim">
-                <model-viewer
-                    id="nestegg-viewer"
-                    src="NestEggFBCR.glb"
-                    alt="3D model of the NestEgg"
-                    camera-controls
-                    auto-rotate
-                    auto-rotate-delay="2000"
-                    rotation-per-second="4deg"
-                    exposure="1.05"
-                    shadow-intensity="0.25"
-                    camera-orbit="0deg 80deg 2.2m"
-                    camera-target="0m 0.1m 0m"
-                    field-of-view="30deg"
-                    disable-zoom
-                >
+  <!-- ================= FOOTER ================= -->
+  <footer>
+    <div>TerraDignus &mdash; Variable-Volume Wildlife Habitation System</div>
+    <div style="margin-top:8px;">&copy; 2015&ndash;2025 TerraDignus / Perdignus LLC. All Rights Reserved.</div>
+  </footer>
 
-                    <!-- 1. ENTRANCE APERTURE -->
-                    <!-- inches → meters: (2.509, 0.000, 3.672) → (0.0637, 0.0000, 0.0933) -->
-                    <button class="hotspot"
-                        slot="hotspot-entrance"
-                        data-feature="entrance"
-                        data-position="0.0637m 0m 0.0933m"
-                        data-normal="0m 0m 1m"
-                        data-visibility-attribute="visible">
-                        <span class="hotspot-label">Entrance Aperture</span>
-                    </button>
+  <!-- ================= THREE.JS + VIEWER LOGIC ================= -->
+  <script type="module">
+    import * as THREE from "https://unpkg.com/three@0.158.0/build/three.module.js";
+    import { OrbitControls } from "https://unpkg.com/three@0.158.0/examples/jsm/controls/OrbitControls.js";
+    import { GLTFLoader } from "https://unpkg.com/three@0.158.0/examples/jsm/loaders/GLTFLoader.js";
 
-                    <!-- 2. VENTILATION APERTURE (LEFT) -->
-                    <!-- (0.0, -2.149, 3.849) → (0.0000, -0.0546, 0.0978) -->
-                    <button class="hotspot"
-                        slot="hotspot-vent"
-                        data-feature="vent"
-                        data-position="0m -0.0546m 0.0978m"
-                        data-normal="0m 0m 1m"
-                        data-visibility-attribute="visible">
-                        <span class="hotspot-label">Ventilation Aperture (Left)</span>
-                    </button>
+    const container = document.getElementById("nesteggCanvasContainer");
+    const canvas = document.getElementById("nesteggCanvas");
+    const annotationsLayer = document.getElementById("annotationsLayer");
 
-                    <!-- 3. DRAINAGE APERTURE -->
-                    <!-- (-0.877, 0.036, -3.951) → (-0.0223, 0.0009, -0.1004) -->
-                    <button class="hotspot"
-                        slot="hotspot-drain"
-                        data-feature="drain"
-                        data-position="-0.0223m 0.0009m -0.1004m"
-                        data-normal="0m -1m 0m"
-                        data-visibility-attribute="visible">
-                        <span class="hotspot-label">Drainage Aperture</span>
-                    </button>
+    const scene = new THREE.Scene();
+    scene.background = null;
 
-                    <!-- 4. SHELL SEPARATION JOINT -->
-                    <!-- (-0.003, 0.036, -0.419) → (-0.0001, 0.0009, -0.0106) -->
-                    <button class="hotspot"
-                        slot="hotspot-joint"
-                        data-feature="joint"
-                        data-position="-0.0001m 0.0009m -0.0106m"
-                        data-normal="0m 0m 1m"
-                        data-visibility-attribute="visible">
-                        <span class="hotspot-label">Shell Separation Joint</span>
-                    </button>
+    const camera = new THREE.PerspectiveCamera(
+      35,
+      container.clientWidth / container.clientHeight,
+      0.1,
+      1000
+    );
 
-                </model-viewer>
-            </div>
-        </section>
-    </main>
+    const renderer = new THREE.WebGLRenderer({
+      canvas,
+      antialias: true,
+      alpha: true
+    });
+    renderer.setPixelRatio(window.devicePixelRatio || 1);
+    renderer.setSize(container.clientWidth, container.clientHeight);
 
-    <!-- FOOTER BELOW EVERYTHING -->
-    <footer>
-        TerraDignus — Variable-Volume Wildlife Habitation Systems © 2015–2025
-    </footer>
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.enablePan = false;
+    controls.autoRotate = true;
+    controls.autoRotateSpeed = 0.4;
+    controls.minDistance = 6;
+    controls.maxDistance = 26;
 
-    <script>
-        const viewer = document.getElementById('nestegg-viewer');
-        const hotspots = Array.from(document.querySelectorAll('.hotspot'));
+    const hemiLight = new THREE.HemisphereLight(0xffffff, 0x888888, 0.85);
+    scene.add(hemiLight);
 
-        // basic camera targeting presets tied to each feature
-        const featureCameras = {
-            entrance: {
-                target: "0.0637m 0m 0.0933m",
-                orbit: "10deg 80deg 1.6m",
-                fov: "24deg"
-            },
-            vent: {
-                target: "0m -0.0546m 0.0978m",
-                orbit: "-40deg 75deg 1.7m",
-                fov: "26deg"
-            },
-            drain: {
-                target: "-0.0223m 0.0009m -0.1004m",
-                orbit: "0deg 100deg 1.8m",
-                fov: "26deg"
-            },
-            joint: {
-                target: "-0.0001m 0.0009m -0.0106m",
-                orbit: "160deg 80deg 1.8m",
-                fov: "28deg"
-            }
-        };
+    const dirLight = new THREE.DirectionalLight(0xffffff, 0.95);
+    dirLight.position.set(5, 10, 7);
+    scene.add(dirLight);
 
-        function setActiveFeature(featureId) {
-            const config = featureCameras[featureId];
-            if (!config) return;
+    let model = null;
 
-            // Update camera on the model-viewer
-            viewer.setAttribute('camera-target', config.target);
-            viewer.setAttribute('camera-orbit', config.orbit);
-            viewer.setAttribute('field-of-view', config.fov);
+    // === Feature data (positions in model units; from you) ===
+    const features = [
+      {
+        id: "entrance",
+        name: "Entrance Aperture",
+        position: new THREE.Vector3(2.509, 0.0, 3.672)
+      },
+      {
+        id: "vent-left",
+        name: "Ventilation Aperture (Left)",
+        position: new THREE.Vector3(0.0, -2.149, 3.849)
+      },
+      {
+        id: "drainage",
+        name: "Drainage Aperture",
+        position: new THREE.Vector3(-0.877, 0.036, -3.951)
+      },
+      {
+        id: "shell-joint",
+        name: "Shell Separation Joint",
+        position: new THREE.Vector3(-0.003, 0.036, -0.419)
+      }
+    ];
 
-            // Update hotspot states
-            hotspots.forEach(hs => {
-                if (hs.dataset.feature === featureId) {
-                    hs.classList.add('active');
-                    hs.classList.remove('dimmed');
-                } else {
-                    hs.classList.remove('active');
-                    hs.classList.add('dimmed');
-                }
-            });
+    const annotationElements = new Map();
+    let activeFeatureId = "entrance";
+
+    let floatPhase = 0;
+    let desiredCameraPos = null;
+    let desiredTarget = null;
+
+    // ------------- Load Model -------------
+    const loader = new GLTFLoader();
+    loader.load(
+      "NestEggFBCR.glb",
+      (gltf) => {
+        model = gltf.scene;
+        scene.add(model);
+
+        // Center the model at origin
+        const box = new THREE.Box3().setFromObject(model);
+        const center = box.getCenter(new THREE.Vector3());
+        const size = box.getSize(new THREE.Vector3());
+        model.position.sub(center);
+
+        // Fit camera to model
+        const maxDim = Math.max(size.x, size.y, size.z);
+        const radius = maxDim * 0.6;
+        const fov = (camera.fov * Math.PI) / 180;
+        let camDist = radius / Math.sin(fov / 2);
+        camDist *= 1.15;
+
+        camera.position.set(camDist * 0.6, camDist * 0.3, camDist);
+        camera.lookAt(0, 0, 0);
+        controls.target.set(0, 0, 0);
+        controls.update();
+
+        initAnnotations();
+        animate();
+      },
+      undefined,
+      (err) => {
+        console.error("Error loading NestEggFBCR.glb:", err);
+      }
+    );
+
+    // ------------- Annotations -------------
+    function initAnnotations() {
+      features.forEach((feature) => {
+        const wrapper = document.createElement("div");
+        wrapper.className = "feature-annotation";
+        wrapper.dataset.id = feature.id;
+
+        const orb = document.createElement("div");
+        orb.className = "feature-orb";
+
+        const line = document.createElement("div");
+        line.className = "feature-line";
+
+        const label = document.createElement("div");
+        label.className = "feature-label";
+        label.textContent = feature.name;
+
+        wrapper.appendChild(orb);
+        wrapper.appendChild(line);
+        wrapper.appendChild(label);
+        annotationsLayer.appendChild(wrapper);
+
+        function onClick() {
+          setActiveFeature(feature.id);
         }
 
-        // Wire clicks
-        hotspots.forEach(hs => {
-            hs.addEventListener('click', () => {
-                const id = hs.dataset.feature;
-                setActiveFeature(id);
-            });
-        });
+        orb.addEventListener("click", onClick);
+        label.addEventListener("click", onClick);
 
-        // Initialize with entrance active
-        setActiveFeature('entrance');
-    </script>
+        annotationElements.set(feature.id, wrapper);
+      });
+
+      setActiveFeature(activeFeatureId);
+      updateAnnotationPositions();
+    }
+
+    function setActiveFeature(id) {
+      activeFeatureId = id;
+
+      annotationElements.forEach((el, fid) => {
+        if (fid === id) el.classList.add("active");
+        else el.classList.remove("active");
+      });
+
+      const feature = features.find((f) => f.id === id);
+      if (!feature) return;
+
+      // Zoom toward the selected feature
+      const offsetDir = feature.position.clone().normalize();
+      const distance = 10; // tweak if you want closer/farther
+      desiredCameraPos = feature.position
+        .clone()
+        .add(offsetDir.multiplyScalar(distance));
+      desiredTarget = feature.position.clone();
+    }
+
+    function updateAnnotationPositions() {
+      if (!model) return;
+
+      const rect = container.getBoundingClientRect();
+      const width = rect.width;
+      const height = rect.height;
+
+      features.forEach((feature) => {
+        const el = annotationElements.get(feature.id);
+        if (!el) return;
+
+        const worldPos = feature.position.clone().add(model.position);
+        const projected = worldPos.clone().project(camera);
+
+        // Only show if in front of camera
+        if (projected.z > 1 || projected.z < -1) {
+          el.style.opacity = "0";
+          return;
+        } else {
+          el.style.opacity = "0.95";
+        }
+
+        const x = (projected.x * 0.5 + 0.5) * width;
+        const y = (-projected.y * 0.5 + 0.5) * height;
+
+        // Place orb; line + label extend to the right
+        el.style.transform = `translate(${x}px, ${y}px) translate(0, -50%)`;
+      });
+    }
+
+    function onResize() {
+      const width = container.clientWidth;
+      const height = container.clientHeight || window.innerHeight * 0.8;
+
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+      renderer.setSize(width, height);
+
+      updateAnnotationPositions();
+    }
+
+    window.addEventListener("resize", onResize);
+
+    // ------------- Animation Loop -------------
+    function animate() {
+      requestAnimationFrame(animate);
+
+      floatPhase += 0.01;
+      if (model) {
+        model.position.y = Math.sin(floatPhase) * 0.12;
+      }
+
+      if (desiredCameraPos && desiredTarget) {
+        camera.position.lerp(desiredCameraPos, 0.04);
+        controls.target.lerp(desiredTarget, 0.06);
+      }
+
+      controls.update();
+      renderer.render(scene, camera);
+      updateAnnotationPositions();
+    }
+
+    // Initial size setup (before model load)
+    onResize();
+  </script>
 </body>
 </html>
