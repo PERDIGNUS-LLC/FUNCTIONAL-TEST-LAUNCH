@@ -6,16 +6,16 @@
     <title>TerraDignus – The NestEgg</title>
 
     <style>
-        body, html {
+        html, body {
             margin: 0;
             padding: 0;
             overflow-x: hidden;
-            font-family: 'Inter', sans-serif;
             background: #f7f7f2;
+            font-family: "Inter", sans-serif;
         }
 
         /* ─────────────────────────────
-           HERO HEADER (UNCHANGED)
+           HERO HEADER
         ───────────────────────────── */
         .hero {
             background: #0E4A3A;
@@ -26,13 +26,15 @@
 
         .hero-logo {
             width: 110px;
-            margin-bottom: 25px;
+            height: auto;
+            margin-bottom: 20px;
         }
 
         .hero-title {
             font-size: 56px;
             font-weight: 700;
             margin-bottom: 10px;
+            font-family: "Playfair Display", serif;
         }
 
         .hero-sub {
@@ -42,7 +44,7 @@
         }
 
         /* ─────────────────────────────
-           MODEL VIEWER — FULL WIDTH, NO BOXES
+           MODEL AREA (FULL WIDTH)
         ───────────────────────────── */
         #model-section {
             position: relative;
@@ -52,64 +54,60 @@
         }
 
         canvas {
-            display: block;
             width: 100% !important;
             height: 100% !important;
+            display: block;
         }
 
         /* ─────────────────────────────
-           ANNOTATIONS — floating labels
+           FOOTER
         ───────────────────────────── */
-        .label {
-            position: absolute;
-            pointer-events: auto;
-            background: rgba(255, 255, 255, 0.85);
-            border: 1px solid #ccc;
-            padding: 6px 12px;
-            border-radius: 8px;
+        footer {
+            background: #0E4A3A;
+            color: #ffffff;
+            text-align: center;
+            padding: 30px 20px;
             font-size: 14px;
-            white-space: nowrap;
-            backdrop-filter: blur(6px);
-        }
-
-        .orb {
-            position: absolute;
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            background: radial-gradient(circle, #ffe7a3, #ffb400);
-            box-shadow: 0 0 12px #ffcc66;
-            cursor: pointer;
-            pointer-events: auto;
+            letter-spacing: 2px;
         }
     </style>
 </head>
 
 <body>
 
-    <!-- ░░░ HERO HEADER (KEEP SAME) ░░░ -->
-    <div class="hero">
+    <!-- ░░░ HERO HEADER ░░░ -->
+    <header class="hero">
         <img class="hero-logo" src="TD HL BINDRUNE.png" alt="TerraDignus Logo" />
-        <div class="hero-title">TerraDignus</div>
+        <h1 class="hero-title">TerraDignus</h1>
         <div class="hero-sub">EST. MMXV</div>
-        <div style="margin-top:15px; font-size:19px; letter-spacing:3px;">
+        <div style="margin-top: 15px; font-size: 19px; letter-spacing: 3px;">
             CONSERVATION ENGINEERING. REDEFINED.
         </div>
-    </div>
+    </header>
 
-    <!-- ░░░ MODEL SECTION (FULL FLOATING MODEL) ░░░ -->
-    <div id="model-section"></div>
+    <!-- ░░░ FULL-BLEED MODEL VIEWER ░░░ -->
+    <section id="model-section"></section>
 
-    <!-- Three.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r152/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.152/examples/js/loaders/GLTFLoader.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.152/examples/js/controls/OrbitControls.js"></script>
+    <!-- ░░░ FOOTER ░░░ -->
+    <footer>
+        TerraDignus — Variable-Volume Wildlife Habitation System<br>
+        © 2015–2025 Perdignus LLC. All Rights Reserved.
+    </footer>
 
-    <script>
-        /* ─────────────────────────────
+    <!-- ───────────────────────────────
+         THREE.JS — OFFICIAL MODULE IMPORTS
+         (UNPKG = reliable AF)
+    ─────────────────────────────── -->
+    <script type="module">
+        import * as THREE from "https://unpkg.com/three@0.158.0/build/three.module.js";
+        import { GLTFLoader } from "https://unpkg.com/three@0.158.0/examples/jsm/loaders/GLTFLoader.js";
+        import { OrbitControls } from "https://unpkg.com/three@0.158.0/examples/jsm/controls/OrbitControls.js";
+
+        /* -------------------------------
            BASIC SCENE SETUP
-        ───────────────────────────── */
+        --------------------------------*/
         const section = document.getElementById("model-section");
+
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0xf7f7f2);
 
@@ -121,53 +119,77 @@
         );
         camera.position.set(0, 0, 15);
 
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        const renderer = new THREE.WebGLRenderer({
+            antialias: true
+        });
         renderer.setSize(section.clientWidth, section.clientHeight);
         renderer.setPixelRatio(window.devicePixelRatio);
         section.appendChild(renderer.domElement);
 
-        /* LIGHTING */
-        const sun = new THREE.DirectionalLight(0xffffff, 1.2);
+        /* -------------------------------
+           LIGHTING
+        --------------------------------*/
+        const sun = new THREE.DirectionalLight(0xffffff, 1.15);
         sun.position.set(5, 10, 10);
         scene.add(sun);
 
-        const fill = new THREE.AmbientLight(0xffffff, 0.55);
-        scene.add(fill);
+        const ambient = new THREE.AmbientLight(0xffffff, 0.55);
+        scene.add(ambient);
 
-        /* CONTROLS */
-        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        /* -------------------------------
+           CONTROLS
+        --------------------------------*/
+        const controls = new OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
         controls.autoRotate = true;
-        controls.autoRotateSpeed = 0.65;
+        controls.autoRotateSpeed = 0.7;
+        controls.enablePan = false;
 
-        /* MODEL LOADER */
-        const loader = new THREE.GLTFLoader();
+        /* -------------------------------
+           LOAD THE REAL MODEL
+           ✔ MUST MATCH EXACT FILENAME
+           ✔ You said it's in repo root
+        --------------------------------*/
+        const loader = new GLTFLoader();
         let model;
 
         loader.load(
-            "NestEggFBCR.glb",   // ← CORRECT PATH, YOUR FILE IS HERE
+            "NestEggFBCR.glb",
             (gltf) => {
                 model = gltf.scene;
+
+                // Normalize scale & center
                 model.scale.set(3, 3, 3);
+
+                // Center the model at origin
+                const box = new THREE.Box3().setFromObject(model);
+                const center = box.getCenter(new THREE.Vector3());
+                model.position.sub(center);
+
                 scene.add(model);
             },
             undefined,
-            (err) => console.error("Model failed to load:", err)
+            (err) => console.error("FAILED TO LOAD MODEL:", err)
         );
 
-        /* RESIZE HANDLER */
+        /* -------------------------------
+           RESPONSIVE RESIZING
+        --------------------------------*/
         window.addEventListener("resize", () => {
             camera.aspect = section.clientWidth / section.clientHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(section.clientWidth, section.clientHeight);
         });
 
-        /* ANIMATION LOOP */
+        /* -------------------------------
+           RENDER LOOP
+        --------------------------------*/
         function animate() {
             requestAnimationFrame(animate);
             controls.update();
             renderer.render(scene, camera);
         }
+
         animate();
     </script>
 
