@@ -1,789 +1,341 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>TerraDignus — The NestEgg</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-    <!-- Google fonts (similar to your original aesthetic) -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700&family=Playfair+Display:wght@500;600&display=swap"
-      rel="stylesheet"
-    >
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TerraDignus | Advanced Wildlife Habitation</title>
 
     <!-- model-viewer for .glb -->
-    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
 
     <style>
-      :root {
-        --td-green: #0c4b3a;
-        --td-cream: #f4efe7;
-        --td-cream-deep: #e8dfd2;
-        --td-text: #1a1b1f;
-        --td-muted: #777676;
-        --td-pill-bg: rgba(244, 239, 231, 0.9);
-        --td-orb: #ffd26f;
-      }
-
-      * {
-        box-sizing: border-box;
-      }
-
-      body {
-        margin: 0;
-        font-family: "Work Sans", system-ui, -apple-system, BlinkMacSystemFont,
-          "Segoe UI", sans-serif;
-        color: var(--td-text);
-        background: #ffffff;
-      }
-
-      a {
-        color: inherit;
-        text-decoration: none;
-      }
-
-      /* =========== HERO =========== */
-
-      .hero {
-        background: var(--td-green);
-        color: #ffffff;
-        text-align: center;
-        padding: 4rem 1.5rem 3rem;
-      }
-
-      .hero-logo {
-        width: 80px;
-        height: 80px;
-        margin: 0 auto 1.5rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-
-      .hero-logo img {
-        max-width: 100%;
-        height: auto;
-      }
-
-      .hero-title {
-        font-family: "Playfair Display", serif;
-        letter-spacing: 0.25em;
-        font-size: clamp(1.6rem, 2vw, 2rem);
-        text-transform: uppercase;
-        margin: 0;
-      }
-
-      .hero-subtitle {
-        margin-top: 0.5rem;
-        letter-spacing: 0.3em;
-        text-transform: uppercase;
-        font-size: 0.8rem;
-        opacity: 0.8;
-      }
-
-      .hero-tagline {
-        margin-top: 1.75rem;
-        font-size: 1rem;
-        max-width: 900px;
-        margin-left: auto;
-        margin-right: auto;
-        opacity: 0.95;
-      }
-
-      /* =========== NESTEGG FEATURE MAP =========== */
-
-      .feature-section {
-        background: radial-gradient(circle at top, #f6f1e9 0, #f0e7da 55%, #ece2d3 100%);
-        padding: 4rem 6vw 4.5rem;
-      }
-
-      .feature-inner {
-        max-width: 1200px;
-        margin: 0 auto;
-      }
-
-      .feature-header {
-        text-align: center;
-        margin-bottom: 3rem;
-      }
-
-      .feature-header h2 {
-        font-family: "Playfair Display", serif;
-        letter-spacing: 0.2em;
-        text-transform: uppercase;
-        font-size: 1rem;
-        color: var(--td-green);
-        margin-bottom: 0.75rem;
-      }
-
-      .feature-header h3 {
-        font-size: 1.7rem;
-        letter-spacing: 0.18em;
-        text-transform: uppercase;
-        color: var(--td-green);
-        margin: 0;
-      }
-
-      .feature-header p {
-        margin-top: 0.75rem;
-        font-size: 0.95rem;
-        color: var(--td-muted);
-      }
-
-      .feature-layout {
-        display: grid;
-        grid-template-columns: minmax(0, 2fr) minmax(0, 1.2fr);
-        gap: 2.5rem;
-        align-items: center;
-      }
-
-      /* Central floating NestEgg */
-
-      .stage {
-        position: relative;
-        max-width: 620px;
-        aspect-ratio: 4 / 3;
-        margin: 0 auto;
-        border-radius: 40px;
-        background: radial-gradient(circle at 30% 10%, #ffffff, #f2e9dd 65%);
-        overflow: hidden;
-        box-shadow:
-          0 26px 60px rgba(0, 0, 0, 0.15),
-          0 0 0 1px rgba(255, 255, 255, 0.6);
-      }
-
-      model-viewer {
-        width: 100%;
-        height: 100%;
-        --poster-color: transparent;
-        --progress-bar-color: var(--td-green);
-        --progress-bar-height: 3px;
-        background: transparent;
-      }
-
-      .stage-floating {
-        animation: bob 5.5s ease-in-out infinite;
-      }
-
-      @keyframes bob {
-        0%, 100% {
-          transform: translateY(0px);
-        }
-        50% {
-          transform: translateY(-8px);
-        }
-      }
-
-      /* Glowing orbs + label stems */
-
-      .annotation-orb {
-        position: absolute;
-        width: 18px;
-        height: 18px;
-        border-radius: 999px;
-        background: var(--td-orb);
-        box-shadow:
-          0 0 0 5px rgba(255, 210, 111, 0.5),
-          0 0 18px rgba(255, 210, 111, 0.9);
-        cursor: pointer;
-        transform: translate(-50%, -50%);
-      }
-
-      .annotation-orb::before {
-        content: "";
-        position: absolute;
-        inset: 3px;
-        border-radius: inherit;
-        border: 2px solid #fff7dd;
-      }
-
-      .annotation-orb::after {
-        /* small dot to hint the line origin; the line itself is drawn by .annotation-label */
-        content: "";
-        position: absolute;
-        width: 4px;
-        height: 4px;
-        border-radius: 999px;
-        background: #fff8e6;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-      }
-
-      /* Orb positions tuned by percentage relative to stage */
-
-      .orb-entrance       { top: 55%; left: 33%; }
-      .orb-vent-left      { top: 28%; left: 60%; }
-      .orb-drain          { top: 84%; left: 42%; }
-      .orb-shell-joint    { top: 60%; left: 54%; }
-      .orb-cling-ridge    { top: 72%; left: 50%; }
-      .orb-modular-insert { top: 44%; left: 29%; }
-      .orb-ovoid-geom     { top: 40%; left: 48%; }
-      .orb-gutter         { top: 76%; left: 60%; }
-
-      .annotation-label {
-        position: absolute;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.35rem;
-        font-size: 0.78rem;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        padding: 0.3rem 0.85rem;
-        border-radius: 999px;
-        background: var(--td-pill-bg);
-        box-shadow: 0 8px 18px rgba(0, 0, 0, 0.1);
-        white-space: nowrap;
-        cursor: pointer;
-      }
-
-      .annotation-label::before {
-        content: "";
-        width: 12px;
-        height: 1px;
-        background: #111;
-        opacity: 0.7;
-      }
-
-      /* Position labels slightly off the orb positions */
-
-      .label-entrance       { top: 60%; left: 65%; }
-      .label-vent-left      { top: 25%; left: 78%; }
-      .label-drain          { top: 85%; left: 18%; }
-      .label-shell-joint    { top: 50%; left: 80%; }
-      .label-cling-ridge    { top: 70%; left: 13%; }
-      .label-modular-insert { top: 36%; left: 17%; }
-      .label-ovoid-geom     { top: 14%; left: 47%; }
-      .label-gutter         { top: 82%; left: 78%; }
-
-      .annotation-label span.bullet {
-        width: 6px;
-        height: 6px;
-        border-radius: 999px;
-        background: var(--td-green);
-      }
-
-      .annotation-label span.text {
-        font-weight: 600;
-        color: var(--td-green);
-      }
-
-      .annotation-label.active,
-      .feature-chip.active {
-        background: #ffffff;
-        color: var(--td-green);
-        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
-      }
-
-      /* Right side: compact feature list + detail */
-
-      .feature-side {
-        padding-right: 0.75rem;
-      }
-
-      .feature-list-label {
-        font-size: 0.8rem;
-        letter-spacing: 0.16em;
-        text-transform: uppercase;
-        color: var(--td-muted);
-        margin-bottom: 0.7rem;
-      }
-
-      .feature-chips {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.6rem;
-        margin-bottom: 1.5rem;
-      }
-
-      .feature-chip {
-        font-size: 0.78rem;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        padding: 0.45rem 0.9rem;
-        border-radius: 999px;
-        border: 1px solid rgba(12, 75, 58, 0.25);
-        background: rgba(255, 255, 255, 0.9);
-        cursor: pointer;
-        transition: background 0.15s ease, box-shadow 0.15s ease,
-          transform 0.15s ease;
-      }
-
-      .feature-chip:hover {
-        background: #ffffff;
-        transform: translateY(-1px);
-        box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
-      }
-
-      .feature-detail-block {
-        padding: 1.5rem 1.4rem;
-        border-radius: 1.5rem;
-        background: rgba(255, 255, 255, 0.96);
-        box-shadow:
-          0 18px 45px rgba(0, 0, 0, 0.12),
-          0 0 0 1px rgba(255, 255, 255, 0.4);
-      }
-
-      .feature-detail-block h4 {
-        margin: 0 0 0.5rem;
-        font-size: 1rem;
-        letter-spacing: 0.18em;
-        text-transform: uppercase;
-        color: var(--td-green);
-      }
-
-      .feature-detail-block p {
-        margin: 0 0 0.5rem;
-        font-size: 0.88rem;
-        line-height: 1.5;
-        color: #444;
-      }
-
-      .feature-detail-block p.subtle {
-        font-size: 0.82rem;
-        color: var(--td-muted);
-        text-transform: uppercase;
-        letter-spacing: 0.15em;
-        margin-top: 0.9rem;
-      }
-
-      /* =========== LOWER PRODUCT COPY (NestEgg only) =========== */
-
-      .product-section {
-        padding: 4rem 8vw 4.5rem;
-      }
-
-      .product-grid {
-        max-width: 1100px;
-        margin: 0 auto;
-        display: grid;
-        grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
-        gap: 3rem;
-        align-items: center;
-      }
-
-      .product-tag {
-        text-transform: uppercase;
-        font-size: 0.72rem;
-        letter-spacing: 0.18em;
-        background: #0f503d10;
-        color: var(--td-green);
-        padding: 0.3rem 0.65rem;
-        border-radius: 999px;
-        display: inline-block;
-        margin-bottom: 0.7rem;
-      }
-
-      .product-title {
-        font-family: "Playfair Display", serif;
-        font-size: 1.7rem;
-        margin: 0 0 0.3rem;
-      }
-
-      .product-subtitle {
-        font-size: 0.9rem;
-        text-transform: uppercase;
-        letter-spacing: 0.18em;
-        color: var(--td-muted);
-        margin-bottom: 1.4rem;
-      }
-
-      .product-body {
-        font-size: 0.9rem;
-        line-height: 1.55;
-        color: #333;
-        margin-bottom: 1.2rem;
-      }
-
-      .product-body b {
-        font-weight: 600;
-      }
-
-      .product-features {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-        font-size: 0.88rem;
-        color: #222;
-      }
-
-      .product-features li {
-        margin-bottom: 0.35rem;
-        position: relative;
-        padding-left: 1.1rem;
-      }
-
-      .product-features li::before {
-        content: "•";
-        position: absolute;
-        left: 0;
-        color: var(--td-green);
-      }
-
-      .product-model-shell {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-
-      .product-egg {
-        width: 260px;
-        height: 260px;
-        border-radius: 999px;
-        background: radial-gradient(circle at 30% 20%, #4b4b4b, #191919);
-        box-shadow:
-          0 30px 70px rgba(0, 0, 0, 0.45),
-          0 0 0 1px rgba(255, 255, 255, 0.18);
-      }
-
-      /* =========== FOOTER / IP BLOCK =========== */
-
-      .ip-section {
-        padding: 3rem 5vw 3.5rem;
-        background: #f5f5f7;
-        text-align: center;
-        font-size: 0.85rem;
-      }
-
-      .ip-title {
-        font-weight: 600;
-        margin-bottom: 0.5rem;
-      }
-
-      .ip-body {
-        color: var(--td-muted);
-        margin-bottom: 1rem;
-      }
-
-      .ip-list {
-        font-family: "Courier New", ui-monospace, SFMono-Regular, Menlo, Monaco,
-          Consolas, "Liberation Mono", "Courier New", monospace;
-        font-size: 0.82rem;
-        color: var(--td-green);
-        line-height: 1.7;
-      }
-
-      .site-footer {
-        padding: 1.5rem 1.5rem 2rem;
-        text-align: center;
-        font-size: 0.78rem;
-        color: #999;
-      }
-
-      /* =========== RESPONSIVE =========== */
-
-      @media (max-width: 960px) {
-        .feature-layout {
-          grid-template-columns: minmax(0, 1fr);
+        /* --- RESET & VARIABLES --- */
+        :root {
+            --forest-green: #1A4D3E; /* Brand Green */
+            --clay: #8D7F73;         /* NecTerra vibe */
+            --off-white: #F4F4F0;
+            --black: #111;
+            --grey: #b3b3b3ff;       /* The Bio-Seal Color */
+            --orb-color: #FFD26F;
         }
 
-        .feature-side {
-          order: -1;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
         }
 
-        .annotation-label {
-          font-size: 0.7rem;
+        body {
+            background-color: var(--off-white);
+            color: var(--black);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
 
-        .product-grid {
-          grid-template-columns: minmax(0, 1fr);
+        h1, h2, h3 {
+            font-weight: 700;
+            letter-spacing: -0.05em;
         }
 
-        .product-egg {
-          width: 220px;
-          height: 220px;
-        }
-      }
-
-      @media (max-width: 720px) {
-        .feature-section {
-          padding-inline: 1.5rem;
+        .roman {
+            font-family: 'Times New Roman', serif;
+            letter-spacing: 0.1em;
         }
 
-        .feature-header h3 {
-          font-size: 1.3rem;
+        /* --- HERO SECTION (UNCHANGED) --- */
+        header {
+            height: 90vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background: var(--forest-green);
+            color: white;
+            padding: 2rem;
         }
 
-        .feature-header p {
-          font-size: 0.88rem;
+        .logo-container {
+            max-width: 125px;
+            margin-bottom: .8rem;
+            margin-top: 20px;
         }
 
-        .stage {
-          border-radius: 28px;
+        header h1 {
+            font-size: 4rem;
+            margin-bottom: 0.5rem;
         }
 
-        .annotation-label {
-          display: none; /* simplify on small screens; orbs still clickable */
+        header p {
+            font-size: 1.2rem;
+            opacity: 0.8;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
         }
 
-        .feature-chips {
-          gap: 0.4rem;
+        /* --- ANNOTATED NESTEGG SECTION --- */
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
         }
-      }
+
+        .nestegg-section {
+            /* transparent background as requested */
+            padding: 4rem 1.5rem 3rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .nestegg-wrap {
+            position: relative;
+            width: min(900px, 100%);
+            aspect-ratio: 4 / 3;
+            margin: 0 auto;
+            /* No visible box / container styling */
+        }
+
+        model-viewer#nestegg-viewer {
+            width: 100%;
+            height: 100%;
+            --poster-color: transparent;
+            background: transparent;
+        }
+
+        /* subtle float animation so it feels alive, not dead */
+        .float-anim {
+            animation: floatY 6s ease-in-out infinite;
+        }
+
+        @keyframes floatY {
+            0%   { transform: translateY(4px); }
+            50%  { transform: translateY(-4px); }
+            100% { transform: translateY(4px); }
+        }
+
+        /* --- HOTSPOTS: glowing orbs + line + label --- */
+        .hotspot {
+            position: relative;
+            width: 18px;
+            height: 18px;
+            border-radius: 999px;
+            border: 2px solid #fff7dd;
+            background: radial-gradient(circle, #ffffff 0, var(--orb-color) 45%, rgba(255, 255, 255, 0) 80%);
+            box-shadow:
+                0 0 10px rgba(255, 210, 111, 0.9),
+                0 0 24px rgba(255, 210, 111, 0.7);
+            outline: none;
+            cursor: pointer;
+        }
+
+        .hotspot::before {
+            /* leader line from orb toward label */
+            content: "";
+            position: absolute;
+            left: 110%;
+            top: 50%;
+            width: 70px;
+            height: 1px;
+            background: rgba(17, 17, 17, 0.7);
+            transform: translateY(-50%);
+        }
+
+        .hotspot-label {
+            position: absolute;
+            left: 110%;
+            top: 50%;
+            transform: translate(72px, -50%);
+            white-space: nowrap;
+            font-size: 0.78rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            padding: 0.2rem 0.55rem;
+            border-radius: 999px;
+            background: rgba(244, 244, 240, 0.96);
+            border: 1px solid rgba(0, 0, 0, 0.12);
+            color: var(--forest-green);
+        }
+
+        .hotspot.active {
+            box-shadow:
+                0 0 14px rgba(255, 230, 170, 1),
+                0 0 32px rgba(255, 210, 111, 0.95);
+            transform: scale(1.05);
+        }
+
+        .hotspot.dimmed {
+            opacity: 0.2;
+            box-shadow: none;
+        }
+
+        /* On small screens, keep labels a bit quieter */
+        @media (max-width: 768px) {
+            .hotspot::before {
+                width: 40px;
+            }
+            .hotspot-label {
+                font-size: 0.7rem;
+                transform: translate(46px, -50%);
+            }
+        }
+
+        /* --- FOOTER --- */
+        footer {
+            text-align: center;
+            padding: 1.5rem 1rem 2rem;
+            font-size: 0.8rem;
+            color: rgba(0, 0, 0, 0.6);
+        }
     </style>
-  </head>
+</head>
+<body>
 
-  <body>
-    <!-- HERO -->
-    <header class="hero">
-      <div class="hero-logo">
-        <!-- If you want the actual 3D logo here, replace with your image -->
-        <img src="TD HL BINDRUNE.png" alt="TerraDignus Logo" class="logo-container"> 
-      </div>
-      <h1 class="hero-title">Terradignus</h1>
-      <div class="hero-subtitle">EST. MMXV</div>
-      <p class="hero-tagline">
-        The NestEgg — Variable-Volume Wildlife Habitation System
-      </p>
+    <!-- HERO (unchanged) -->
+    <header>
+        <img src="assets/TD HL BINDRUNE.png" alt="TerraDignus Logo" class="logo-container">
+        <h1>TerraDignus</h1>
+        <p class="roman">EST. MMXV</p>
+        <br>
+        <p>Conservation Engineering. Redefined.</p>
     </header>
 
-    <!-- NESTEGG FEATURE MAP -->
-    <section class="feature-section">
-      <div class="feature-inner">
-        <div class="feature-header">
-          <h2>The NestEgg</h2>
-          <h3>Feature Map</h3>
-          <p>
-            Tap a glowing orb or a feature name. The NestEgg will re-orient and zoom
-            to that region while the design details update on the right.
-          </p>
-        </div>
+    <!-- FLOATING ANNOTATED NESTEGG MODEL -->
+    <main>
+        <section class="nestegg-section">
+            <div class="nestegg-wrap float-anim">
+                <model-viewer
+                    id="nestegg-viewer"
+                    src="NestEggFBCR.glb"
+                    alt="3D model of the NestEgg"
+                    camera-controls
+                    auto-rotate
+                    auto-rotate-delay="2000"
+                    rotation-per-second="4deg"
+                    exposure="1.05"
+                    shadow-intensity="0.25"
+                    camera-orbit="0deg 80deg 2.2m"
+                    camera-target="0m 0.1m 0m"
+                    field-of-view="30deg"
+                    disable-zoom
+                >
 
-        <div class="feature-layout">
-          <!-- Central floating model + annotations -->
-          <div class="stage stage-floating" id="stage">
-            <model-viewer
-              id="nesteggViewer"
-              src="NestEggFBCR.glb"
-              alt="The NestEgg wildlife habitat"
-              camera-controls
-              auto-rotate
-              auto-rotate-delay="2500"
-              rotation-per-second="4deg"
-              exposure="1.0"
-              shadow-intensity="0.2"
-              camera-orbit="0deg 85deg 2.2m"
-              camera-target="0m 0.1m 0m"
-            ></model-viewer>
+                    <!-- 1. ENTRANCE APERTURE -->
+                    <!-- inches → meters: (2.509, 0.000, 3.672) → (0.0637, 0.0000, 0.0933) -->
+                    <button class="hotspot"
+                        slot="hotspot-entrance"
+                        data-feature="entrance"
+                        data-position="0.0637m 0m 0.0933m"
+                        data-normal="0m 0m 1m"
+                        data-visibility-attribute="visible">
+                        <span class="hotspot-label">Entrance Aperture</span>
+                    </button>
 
-            <!-- Orbs (click targets) -->
-            <div class="annotation-orb orb-entrance"       data-feature="entrance-aperture"></div>
-            <div class="annotation-orb orb-vent-left"      data-feature="ventilation-left"></div>
-            <div class="annotation-orb orb-drain"          data-feature="drainage-aperture"></div>
-            <div class="annotation-orb orb-shell-joint"    data-feature="shell-joint"></div>
-            <div class="annotation-orb orb-cling-ridge"    data-feature="cling-ridge"></div>
-            <div class="annotation-orb orb-modular-insert" data-feature="modular-insert"></div>
-            <div class="annotation-orb orb-ovoid-geom"     data-feature="ovoid-geometry"></div>
-            <div class="annotation-orb orb-gutter"         data-feature="gutter-channel"></div>
+                    <!-- 2. VENTILATION APERTURE (LEFT) -->
+                    <!-- (0.0, -2.149, 3.849) → (0.0000, -0.0546, 0.0978) -->
+                    <button class="hotspot"
+                        slot="hotspot-vent"
+                        data-feature="vent"
+                        data-position="0m -0.0546m 0.0978m"
+                        data-normal="0m 0m 1m"
+                        data-visibility-attribute="visible">
+                        <span class="hotspot-label">Ventilation Aperture (Left)</span>
+                    </button>
 
-            <!-- Labels radiating out -->
-            <div class="annotation-label label-entrance" data-feature="entrance-aperture">
-              <span class="bullet"></span><span class="text">Entrance Aperture</span>
+                    <!-- 3. DRAINAGE APERTURE -->
+                    <!-- (-0.877, 0.036, -3.951) → (-0.0223, 0.0009, -0.1004) -->
+                    <button class="hotspot"
+                        slot="hotspot-drain"
+                        data-feature="drain"
+                        data-position="-0.0223m 0.0009m -0.1004m"
+                        data-normal="0m -1m 0m"
+                        data-visibility-attribute="visible">
+                        <span class="hotspot-label">Drainage Aperture</span>
+                    </button>
+
+                    <!-- 4. SHELL SEPARATION JOINT -->
+                    <!-- (-0.003, 0.036, -0.419) → (-0.0001, 0.0009, -0.0106) -->
+                    <button class="hotspot"
+                        slot="hotspot-joint"
+                        data-feature="joint"
+                        data-position="-0.0001m 0.0009m -0.0106m"
+                        data-normal="0m 0m 1m"
+                        data-visibility-attribute="visible">
+                        <span class="hotspot-label">Shell Separation Joint</span>
+                    </button>
+
+                </model-viewer>
             </div>
+        </section>
+    </main>
 
-            <div class="annotation-label label-vent-left" data-feature="ventilation-left">
-              <span class="bullet"></span><span class="text">Ventilation Aperture (Left)</span>
-            </div>
-
-            <div class="annotation-label label-drain" data-feature="drainage-aperture">
-              <span class="bullet"></span><span class="text">Drainage Aperture</span>
-            </div>
-
-            <div class="annotation-label label-shell-joint" data-feature="shell-joint">
-              <span class="bullet"></span><span class="text">Shell Separation Joint</span>
-            </div>
-
-            <div class="annotation-label label-cling-ridge" data-feature="cling-ridge">
-              <span class="bullet"></span><span class="text">Cling Ridge System</span>
-            </div>
-
-            <div class="annotation-label label-modular-insert" data-feature="modular-insert">
-              <span class="bullet"></span><span class="text">Modular Entrance Insert</span>
-            </div>
-
-            <div class="annotation-label label-ovoid-geom" data-feature="ovoid-geometry">
-              <span class="bullet"></span><span class="text">Overall Ovoid Geometry</span>
-            </div>
-
-            <div class="annotation-label label-gutter" data-feature="gutter-channel">
-              <span class="bullet"></span><span class="text">Cling Ridge Gutter Channel</span>
-            </div>
-          </div>
-
-          <!-- Right side: feature list + detail copy -->
-          <aside class="feature-side">
-            <div class="feature-list-label">Select a feature</div>
-            <div class="feature-chips">
-              <button class="feature-chip" data-feature="entrance-aperture">Entrance Aperture</button>
-              <button class="feature-chip" data-feature="ventilation-left">Ventilation Aperture (Left)</button>
-              <button class="feature-chip" data-feature="drainage-aperture">Drainage Aperture</button>
-              <button class="feature-chip" data-feature="shell-joint">Shell Separation Joint</button>
-              <button class="feature-chip" data-feature="cling-ridge">Cling Ridge System</button>
-              <button class="feature-chip" data-feature="modular-insert">Modular Entrance Insert</button>
-              <button class="feature-chip" data-feature="ovoid-geometry">Overall Ovoid Geometry</button>
-              <button class="feature-chip" data-feature="gutter-channel">Cling Ridge Gutter Channel</button>
-            </div>
-
-            <div class="feature-detail-block">
-              <h4 id="featureTitle">Entrance Aperture</h4>
-              <p id="featureBody">
-                Primary ingress to the nesting chamber. Aperture diameter can be tuned
-                for specific cavity-nesting species, improving occupancy while excluding
-                larger predators.
-              </p>
-              <p id="featureBodySecondary" class="subtle">
-                Species-tuned entrance geometry for protection and selectivity.
-              </p>
-            </div>
-          </aside>
-        </div>
-      </div>
-    </section>
-
-    <!-- PRODUCT COPY (NestEgg only, NutHatch removed) -->
-    <section class="product-section">
-      <div class="product-grid">
-        <div>
-          <div class="product-tag">The Eco-Line</div>
-          <h2 class="product-title">The NestEgg™</h2>
-          <div class="product-subtitle">Advanced Biocomposite Incubation</div>
-
-          <p class="product-body">
-            <b>Bio-analogous infrastructure.</b> Engineered to outperform traditional
-            housing, the NestEgg utilizes proprietary biocomposite technology to
-            replicate the thermal mass and porosity of natural heartwood. The result
-            is a stabilized micro-climate that reduces embryonic mortality in volatile
-            weather patterns.
-          </p>
-
-          <ul class="product-features">
-            <li>NecTerra™ biocomposite shell for naturalized thermal response.</li>
-            <li>Species-specific thermal calibration and entrance geometry.</li>
-            <li>Zero-waste manufacturing and circular end-of-life strategy.</li>
-          </ul>
-        </div>
-
-        <div class="product-model-shell">
-          <!-- This can be a static image; kept simple here. -->
-          <div class="product-egg"></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- IP / FOOTER -->
-    <section class="ip-section">
-      <div class="ip-title">Intellectual Property Portfolio</div>
-      <div class="ip-body">
-        Our technology is protected by pending United States Patents.
-      </div>
-      <div class="ip-list">
-        USPTO PATENT PENDING: Monolithic Composite Method<br />
-        USPTO PATENT PENDING: Variable-Volume Deployment System
-      </div>
-    </section>
-
-    <footer class="site-footer">
-      TerraDignus — Variable-Volume Wildlife Habitation System © 2015–2025
+    <!-- FOOTER BELOW EVERYTHING -->
+    <footer>
+        TerraDignus — Variable-Volume Wildlife Habitation Systems © 2015–2025
     </footer>
 
     <script>
-      // Basic feature configs: camera positions + text
-      const FEATURE_CONFIG = {
-        "entrance-aperture": {
-          title: "Entrance Aperture",
-          body: "Primary access to the nesting chamber. Aperture diameter is tuned to specific cavity-nesting species, improving occupancy while excluding many larger predators.",
-          sub: "Species-tuned entrance geometry for protection and selectivity.",
-          orbit: "10deg 80deg 1.6m",
-          target: "0.03m 0.12m 0.13m"
-        },
-        "ventilation-left": {
-          title: "Ventilation Aperture (Left)",
-          body: "Micro-ventilation ports promote air exchange without drafts, stabilizing humidity and internal temperature during incubation.",
-          sub: "Balanced convective breathing while preserving thermal mass.",
-          orbit: "-40deg 70deg 1.7m",
-          target: "-0.08m 0.19m 0.05m"
-        },
-        "drainage-aperture": {
-          title: "Drainage Aperture",
-          body: "Discrete drainage aperture at the base allows incidental moisture to escape, mitigating mold growth and bedding saturation.",
-          sub: "Passive egress path for accumulated rain or condensation.",
-          orbit: "0deg 100deg 1.7m",
-          target: "0m -0.1m 0.05m"
-        },
-        "shell-joint": {
-          title: "Shell Separation Joint",
-          body: "Indexed separation plane between upper and lower shell halves enables fast cleaning and seasonal inspection without disturbing tree-side mounting.",
-          sub: "Tool-free seasonal maintenance and inspection access.",
-          orbit: "160deg 85deg 2m",
-          target: "0m 0.02m 0m"
-        },
-        "cling-ridge": {
-          title: "Cling Ridge System",
-          body: "Exterior cling ridges improve ladder and hand contact, preventing rotational slip during installation and service.",
-          sub: "High-traction handling geometry integrated into the shell.",
-          orbit: "200deg 90deg 1.9m",
-          target: "0.01m 0.0m 0.03m"
-        },
-        "modular-insert": {
-          title: "Modular Entrance Insert",
-          body: "Replaceable entrance insert supports future seasonal or species-specific modules, such as predator guards or temperature-regulating baffles.",
-          sub: "Forward-compatible interface for future seasonal inserts.",
-          orbit: "15deg 70deg 1.4m",
-          target: "0.04m 0.1m 0.12m"
-        },
-        "ovoid-geometry": {
-          title: "Overall Ovoid Geometry",
-          body: "Continuous ovoid form mimics natural cavities, eliminating stagnation corners and distributing stress evenly across the shell.",
-          sub: "Natural cavity analog for calm, evenly distributed micro-climates.",
-          orbit: "30deg 70deg 2.2m",
-          target: "0m 0.08m 0m"
-        },
-        "gutter-channel": {
-          title: "Cling Ridge Gutter Channel",
-          body: "Integrated gutter channel routes runoff around the shell separation line and away from the entrance, keeping the cavity dry.",
-          sub: "Integrated rain-management channel tied to the cling ridge system.",
-          orbit: "-20deg 95deg 1.9m",
-          target: "0.01m -0.02m 0.06m"
+        const viewer = document.getElementById('nestegg-viewer');
+        const hotspots = Array.from(document.querySelectorAll('.hotspot'));
+
+        // basic camera targeting presets tied to each feature
+        const featureCameras = {
+            entrance: {
+                target: "0.0637m 0m 0.0933m",
+                orbit: "10deg 80deg 1.6m",
+                fov: "24deg"
+            },
+            vent: {
+                target: "0m -0.0546m 0.0978m",
+                orbit: "-40deg 75deg 1.7m",
+                fov: "26deg"
+            },
+            drain: {
+                target: "-0.0223m 0.0009m -0.1004m",
+                orbit: "0deg 100deg 1.8m",
+                fov: "26deg"
+            },
+            joint: {
+                target: "-0.0001m 0.0009m -0.0106m",
+                orbit: "160deg 80deg 1.8m",
+                fov: "28deg"
+            }
+        };
+
+        function setActiveFeature(featureId) {
+            const config = featureCameras[featureId];
+            if (!config) return;
+
+            // Update camera on the model-viewer
+            viewer.setAttribute('camera-target', config.target);
+            viewer.setAttribute('camera-orbit', config.orbit);
+            viewer.setAttribute('field-of-view', config.fov);
+
+            // Update hotspot states
+            hotspots.forEach(hs => {
+                if (hs.dataset.feature === featureId) {
+                    hs.classList.add('active');
+                    hs.classList.remove('dimmed');
+                } else {
+                    hs.classList.remove('active');
+                    hs.classList.add('dimmed');
+                }
+            });
         }
-      };
 
-      const viewer = document.getElementById("nesteggViewer");
-      const featureTitle = document.getElementById("featureTitle");
-      const featureBody = document.getElementById("featureBody");
-      const featureBodySecondary = document.getElementById("featureBodySecondary");
-
-      function setActiveFeature(key) {
-        const cfg = FEATURE_CONFIG[key];
-        if (!cfg) return;
-
-        // Update camera
-        viewer.setAttribute("camera-orbit", cfg.orbit);
-        viewer.setAttribute("camera-target", cfg.target);
-
-        // Update text
-        featureTitle.textContent = cfg.title;
-        featureBody.textContent = cfg.body;
-        featureBodySecondary.textContent = cfg.sub || "";
-
-        // Active classes
-        document.querySelectorAll("[data-feature]").forEach(el =>
-          el.classList.toggle("active", el.dataset.feature === key)
-        );
-      }
-
-      // Clicks from orbs + labels + chips
-      document.querySelectorAll(".annotation-orb, .annotation-label, .feature-chip")
-        .forEach(el => {
-          el.addEventListener("click", () => {
-            const key = el.dataset.feature;
-            setActiveFeature(key);
-          });
+        // Wire clicks
+        hotspots.forEach(hs => {
+            hs.addEventListener('click', () => {
+                const id = hs.dataset.feature;
+                setActiveFeature(id);
+            });
         });
 
-      // Initialize default feature
-      setActiveFeature("entrance-aperture");
+        // Initialize with entrance active
+        setActiveFeature('entrance');
     </script>
-  </body>
+</body>
 </html>
