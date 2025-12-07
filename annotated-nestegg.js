@@ -1,14 +1,14 @@
-/* -------------------------------
-   IMPORT THREE.JS FROM CDN
---------------------------------*/
+// ===============================
+// IMPORT THREE.JS FROM CDN
+// ===============================
 import * as THREE from "https://unpkg.com/three@0.158.0/build/three.module.js";
 import { GLTFLoader } from "https://unpkg.com/three@0.158.0/examples/jsm/loaders/GLTFLoader.js";
 import { OrbitControls } from "https://unpkg.com/three@0.158.0/examples/jsm/controls/OrbitControls.js";
 
-/* -------------------------------
-   SCENE + CAMERA + RENDERER
---------------------------------*/
-const section = document.getElementById("model-section");
+// ===============================
+// SCENE SETUP
+// ===============================
+const container = document.getElementById("model-section");
 const canvas = document.getElementById("three-canvas");
 
 const scene = new THREE.Scene();
@@ -16,41 +16,43 @@ scene.background = new THREE.Color(0xf7f7f2);
 
 const camera = new THREE.PerspectiveCamera(
     40,
-    section.clientWidth / section.clientHeight,
+    container.clientWidth / container.clientHeight,
     0.1,
     2000
 );
-camera.position.set(0, 0, 14);
+camera.position.set(0, 0, 15);
 
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-renderer.setSize(section.clientWidth, section.clientHeight);
+const renderer = new THREE.WebGLRenderer({
+    canvas,
+    antialias: true
+});
+renderer.setSize(container.clientWidth, container.clientHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
 
-/* -------------------------------
-   LIGHTING
---------------------------------*/
+// ===============================
+// LIGHTS
+// ===============================
 scene.add(new THREE.DirectionalLight(0xffffff, 1.2).position.set(5, 10, 10));
 scene.add(new THREE.AmbientLight(0xffffff, 0.55));
 
-/* -------------------------------
-   CONTROLS
---------------------------------*/
+// ===============================
+// ORBIT CONTROLS
+// ===============================
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.autoRotate = true;
-controls.autoRotateSpeed = 0.6;
+controls.autoRotateSpeed = 0.7;
 controls.enablePan = false;
 
+// ===============================
+// LOAD NESTEGG MODEL
+// ===============================
 let model;
-
-/* -------------------------------
-   LOAD GLB MODEL
---------------------------------*/
 const loader = new GLTFLoader();
 
 loader.load(
-    "assets/NestEggFBCR.glb",
-    gltf => {
+    "assets/NestEggFBCR.glb",   // IMPORTANT: FIXED PATH
+    (gltf) => {
         model = gltf.scene;
 
         const box = new THREE.Box3().setFromObject(model);
@@ -58,88 +60,73 @@ loader.load(
         model.position.sub(center);
 
         model.scale.set(3, 3, 3);
-        scene.add(model);
 
-        console.log("MODEL LOADED SUCCESSFULLY");
+        scene.add(model);
     },
     undefined,
-    err => console.error("MODEL LOAD ERROR:", err)
+    (err) => console.error("MODEL LOAD ERROR:", err)
 );
 
-/* -------------------------------
-   ANNOTATIONS
---------------------------------*/
+// ===============================
+// ANNOTATIONS
+// ===============================
 const annotationLayer = document.getElementById("annotation-layer");
 
-const features = [
-    { id: "entrance", name: "Entrance Aperture", pos: new THREE.Vector3(2.509, 0.00, 3.672) },
-    { id: "vent-left", name: "Ventilation Aperture (Left)", pos: new THREE.Vector3(0.0, -2.149, 3.849) },
-    { id: "drainage", name: "Drainage Aperture", pos: new THREE.Vector3(-0.877, 0.036, -3.951) },
-    { id: "shell-joint", name: "Shell Separation Joint", pos: new THREE.Vector3(-0.003, 0.036, -0.419) }
+const FEATURES = [
+    { id: "entrance",   name: "Entrance Aperture",           pos: new THREE.Vector3(2.509, 0, 3.672) },
+    { id: "vent-left",  name: "Ventilation Aperture (Left)", pos: new THREE.Vector3(0, -2.149, 3.849) },
+    { id: "drain",      name: "Drainage Aperture",           pos: new THREE.Vector3(-0.877, 0.036, -3.951) },
+    { id: "joint",      name: "Shell Separation Joint",      pos: new THREE.Vector3(-0.003, 0.036, -0.419) },
 ];
 
-const annotationElements = [];
+const annotations = new Map();
 
-function createAnnotation(feature) {
-    const wrapper = document.createElement("div");
-    wrapper.className = "annotation";
+// CREATE ANNOTATION ELEMENTS
+FEATURES.forEach(f => {
+    const wrap = document.createElement("div");
+    wrap.className = "annotation";
 
     const dot = document.createElement("div");
     dot.className = "dot";
 
     const label = document.createElement("div");
     label.className = "label";
-    label.textContent = feature.name;
+    label.textContent = f.name;
 
-    wrapper.appendChild(dot);
-    wrapper.appendChild(label);
-    annotationLayer.appendChild(wrapper);
+    wrap.appendChild(dot);
+    wrap.appendChild(label);
+    annotationLayer.appendChild(wrap);
 
-    annotationElements.push({ wrapper, feature });
-}
+    annotations.set(f.id, { el: wrap, data: f });
+});
 
-features.forEach(createAnnotation);
-
-/* -------------------------------
-   UPDATE ANNOTATION POSITIONS
---------------------------------*/
+// ===============================
+// UPDATE ANNOTATIONS
+// ===============================
 function updateAnnotations() {
     if (!model) return;
 
-    annotationElements.forEach(obj => {
-        const { wrapper, feature } = obj;
+    FEATURES.forEach(f => {
+        const entry = annotations.get(f.id);
+        const screen = f.pos.clone().project(camera);
 
-        const projected = feature.pos.clone().project(camera);
+        const x = (screen.x * 0.5 + 0.5) * container.clientWidth;
+        const y = (-screen.y * 0.5 + 0.5) * container.clientHeight;
 
-        const x = (projected.x * 0.5 + 0.5) * section.clientWidth;
-        const y = (-projected.y * 0.5 + 0.5) * section.clientHeight;
-
-        wrapper.style.left = `${x}px`;
-        wrapper.style.top = `${y}px`;
-
-        wrapper.style.display = projected.z < 1 ? "block" : "none";
+        entry.el.style.left = `${x}px`;
+        entry.el.style.top = `${y}px`;
+        entry.el.style.display = (screen.z < 1) ? "block" : "none";
     });
 }
 
-/* -------------------------------
-   RENDER LOOP
---------------------------------*/
+// ===============================
+// ANIMATION LOOP
+// ===============================
 function animate() {
     requestAnimationFrame(animate);
-
     controls.update();
     renderer.render(scene, camera);
-
     updateAnnotations();
 }
 
 animate();
-
-/* -------------------------------
-   RESIZE HANDLER
---------------------------------*/
-window.addEventListener("resize", () => {
-    camera.aspect = section.clientWidth / section.clientHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(section.clientWidth, section.clientHeight);
-});
