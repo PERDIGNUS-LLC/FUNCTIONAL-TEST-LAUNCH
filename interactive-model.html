@@ -12,53 +12,61 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
 
     <style>
-        body { margin: 0; overflow: hidden; background: transparent; font-family: 'Inter', sans-serif; }
-        #canvas-container { width: 100vw; height: 100vh; display: block; }
+        /* Transparent background to blend with your #F4F4F0 site */
+        body { margin: 0; overflow: hidden; background: transparent; font-family: 'Helvetica Neue', Arial, sans-serif; }
+        #canvas-container { width: 100%; height: 100vh; display: block; }
 
-        /* LOADING */
+        /* LOADING INDICATOR */
         #loader {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: rgba(255,255,255,0.9); padding: 15px 25px; border-radius: 50px;
-            font-size: 12px; font-weight: bold; letter-spacing: 1px; color: #333;
+            background: rgba(255,255,255,0.9); padding: 15px 25px; border-radius: 4px;
+            font-size: 12px; font-weight: bold; letter-spacing: 1px; color: #1A4D3E; /* Brand Green */
             pointer-events: none; transition: opacity 0.5s;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
         }
 
         /* ANNOTATION ORBS */
         .annotation-marker {
-            position: absolute; width: 14px; height: 14px; cursor: pointer; z-index: 10; display: none;
+            position: absolute; width: 18px; height: 18px; cursor: pointer; z-index: 10; display: none;
         }
         .orb-graphic {
             width: 100%; height: 100%; border-radius: 50%;
-            background: #2c3e50; border: 2px solid white;
-            box-shadow: 0 0 10px rgba(0,0,0,0.2);
-            transition: transform 0.2s, background 0.2s;
+            background: #1A4D3E; /* Brand Green */
+            border: 2px solid #F4F4F0; /* Off-white border */
+            box-shadow: 0 0 10px rgba(26, 77, 62, 0.4);
+            transition: transform 0.3s, background 0.3s;
         }
         .annotation-marker:hover .orb-graphic { 
             transform: scale(1.5); 
-            background: #e67e22;
-            box-shadow: 0 0 15px rgba(230, 126, 34, 0.6);
+            background: #8D7F73; /* Clay/NecTerra Accent */
+            box-shadow: 0 0 15px rgba(141, 127, 115, 0.6);
         }
 
         /* INFO PANEL */
         .info-card {
-            position: absolute; top: 20%; right: 5%; width: 280px;
-            background: rgba(255,255,255,0.95); padding: 25px; border-radius: 8px;
-            border-left: 4px solid #e67e22; opacity: 0; pointer-events: none;
+            position: absolute; top: 10%; right: 5%; width: 260px;
+            background: rgba(244, 244, 240, 0.95); /* Off-white match */
+            padding: 25px; border-radius: 8px;
+            border-left: 4px solid #1A4D3E; /* Brand Green */
+            opacity: 0; pointer-events: none;
             transform: translateX(20px); transition: all 0.4s ease;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            font-family: 'Inter', sans-serif;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.1);
         }
         .info-card.active { opacity: 1; pointer-events: auto; transform: translateX(0); }
-        .info-card h2 { margin: 0 0 10px 0; font-size: 16px; text-transform: uppercase; letter-spacing: 1px; color: #111; font-weight: 700; }
-        .info-card p { margin: 0 0 15px 0; font-size: 13px; line-height: 1.5; color: #555; }
-        .close-btn { background: #111; color: #fff; border: none; padding: 8px 16px; cursor: pointer; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; border-radius: 4px;}
-        .close-btn:hover { background: #e67e22; }
+        
+        .info-card h2 { margin: 0 0 10px 0; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: #1A4D3E; font-weight: 700; }
+        .info-card p { margin: 0 0 20px 0; font-size: 13px; line-height: 1.5; color: #333; }
+        
+        .close-btn { 
+            background: #111; color: #fff; border: none; padding: 8px 16px; 
+            cursor: pointer; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; border-radius: 2px;
+        }
+        .close-btn:hover { background: #8D7F73; }
     </style>
 </head>
 <body>
 
-    <div id="loader">LOADING MODEL...</div>
+    <div id="loader">INITIALIZING ENGINEERING VIEW...</div>
     <div id="canvas-container"></div>
 
     <div class="info-card" id="infoPanel">
@@ -70,39 +78,41 @@
     <script>
         // --- 1. SETUP ---
         const MODEL_PATH = 'assets/NestEggFBCR.glb';
-        // SCALING: Use 1.0 initially. If model is tiny, try 39.37 (Meters to Inches)
+        // Adjust this if model size is wrong. If exported in inches, 1.0 works. If meters, try 39.37.
         const GLOBAL_SCALE = 1.0; 
 
-        // YOUR ANNOTATIONS (INCHES)
+        // YOUR COORDINATES (INCHES)
         const annotations = [
             {
                 id: 1, title: "1. Entrance Aperture",
-                desc: "Dimensioned specifically for target species exclusion.",
+                desc: "Primary biological ingress point, dimensioned specifically for target avian species to exclude larger predators.",
                 rawPos: new THREE.Vector3(2.509, 0.00, 3.672),
                 cameraPos: { x: 5, y: 2, z: 5 }
             },
             {
                 id: 2, title: "2. Ventilation Aperture",
-                desc: "Promotes stack effect for thermal regulation.",
+                desc: "Lateral airflow intake designed to promote the stack effect and regulate internal cavity temperature.",
                 rawPos: new THREE.Vector3(0.0, -2.149, 3.849),
-                cameraPos: { x: 0, y: -2, z: 6 }
+                cameraPos: { x: 0, y: -3, z: 6 }
             },
             {
                 id: 3, title: "3. Rear Mounting Interface",
-                desc: "Universal bracketry compatibility.",
+                desc: "Universal mounting plane compatible with standard bracketry for rapid field deployment.",
                 rawPos: new THREE.Vector3(-0.877, 0.036, -3.951),
-                cameraPos: { x: -5, y: 1, z: -5 }
+                cameraPos: { x: -6, y: 1, z: -6 }
             },
             {
                 id: 4, title: "4. Drainage Aperture",
-                desc: "Ensures moisture egress and pathogen control.",
+                desc: "Base-integrated geometry ensuring moisture egress and pathogen control.",
                 rawPos: new THREE.Vector3(-0.003, 0.036, -0.419),
-                cameraPos: { x: 0, y: 2, z: 3 }
+                cameraPos: { x: 0, y: 2, z: 4 }
             }
         ];
 
         // Scene
         const scene = new THREE.Scene();
+        scene.background = null; // Transparent to see website background
+
         const camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 0.1, 100);
         camera.position.set(8, 4, 8); // Initial view
 
@@ -114,6 +124,8 @@
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
         controls.enablePan = false;
+        controls.minDistance = 4;
+        controls.maxDistance = 20;
 
         // Lights
         const ambLight = new THREE.AmbientLight(0xffffff, 0.7);
@@ -121,6 +133,11 @@
         const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
         dirLight.position.set(5, 10, 7);
         scene.add(dirLight);
+        
+        // Rim Light for that "Pro" look
+        const rimLight = new THREE.DirectionalLight(0x8D7F73, 0.5); // Clay color rim
+        rimLight.position.set(-5, 2, -5);
+        scene.add(rimLight);
 
         // --- 2. LOAD MODEL ---
         const loader = new THREE.GLTFLoader();
@@ -129,7 +146,7 @@
         loader.setDRACOLoader(draco);
 
         let model = null;
-        let modelGroup = new THREE.Group(); // Group allows us to bob/rotate together
+        let modelGroup = new THREE.Group(); // Group allows us to rotate model independently
         scene.add(modelGroup);
 
         loader.load(MODEL_PATH, function(gltf) {
@@ -164,10 +181,9 @@
                 ann.element = div;
 
                 // TRANSFORM COORDINATES
-                // We must apply the same rotation to the coordinates that we applied to the model
-                // The model was rotated -90 deg on X. We do the same to the point vector.
+                // Apply the same rotation (-90 X) to the coordinates
                 const vec = ann.rawPos.clone();
-                vec.applyAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2); // Rotate coords
+                vec.applyAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2); 
                 ann.worldPos = vec; 
             });
         }
@@ -177,7 +193,7 @@
             annotations.forEach(ann => {
                 if(!ann.worldPos) return;
 
-                // Track the model's position/rotation (The Group rotates, so we follow the group)
+                // Track the model group's animation (rotation/bobbing)
                 const screenPos = ann.worldPos.clone();
                 screenPos.applyMatrix4(modelGroup.matrixWorld); 
                 
@@ -187,10 +203,7 @@
                 const y = (-(screenPos.y * 0.5) + 0.5) * window.innerHeight;
 
                 ann.element.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px)`;
-                
-                // Visibility Check (is it in front of camera?)
-                const isVisible = (Math.abs(screenPos.z) < 1);
-                ann.element.style.display = isVisible ? 'block' : 'none';
+                ann.element.style.display = 'block';
             });
         }
 
@@ -203,8 +216,8 @@
             const t = clock.getElapsedTime();
 
             if(modelGroup && !isZoomed) {
-                // BOBBING (Hover) - Applied to Group Y
-                modelGroup.position.y = Math.sin(t * 1.5) * 0.15; 
+                // BOBBING (Hover)
+                modelGroup.position.y = Math.sin(t * 1.5) * 0.1; 
                 
                 // ROTATION (Spin around vertical Y axis)
                 modelGroup.rotation.y += 0.002; 
@@ -218,22 +231,20 @@
 
         function zoomTo(ann) {
             isZoomed = true;
-            // Move camera
-            gsap.to(camera.position, { duration: 1.5, x: ann.cameraPos.x, y: ann.cameraPos.y, z: ann.cameraPos.z });
-            // Look at center (0,0,0) where the model is
-            gsap.to(controls.target, { duration: 1.5, x: 0, y: 0, z: 0 });
+            gsap.to(camera.position, { duration: 1.5, x: ann.cameraPos.x, y: ann.cameraPos.y, z: ann.cameraPos.z, ease: "power2.inOut" });
+            gsap.to(controls.target, { duration: 1.5, x: 0, y: 0, z: 0, ease: "power2.inOut" });
             
             document.getElementById('featureTitle').innerText = ann.title;
             document.getElementById('featureDesc').innerText = ann.desc;
             document.getElementById('infoPanel').classList.add('active');
             
-            // Hide orbs while zoomed
+            // Hide orbs
             annotations.forEach(a => a.element.style.opacity = 0);
         }
 
         window.resetView = function() {
             isZoomed = false;
-            gsap.to(camera.position, { duration: 1.2, x: 8, y: 4, z: 8 });
+            gsap.to(camera.position, { duration: 1.2, x: 8, y: 4, z: 8, ease: "power2.inOut" });
             document.getElementById('infoPanel').classList.remove('active');
             annotations.forEach(a => a.element.style.opacity = 1);
         }
