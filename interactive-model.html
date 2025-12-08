@@ -12,7 +12,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
 
     <style>
-        body { margin: 0; overflow: hidden; background: transparent; font-family: 'Helvetica Neue', Arial, sans-serif; }
+        body { margin: 0; overflow: hidden; background: transparent; font-family: 'Inter', sans-serif; }
         #canvas-container { width: 100vw; height: 100vh; display: block; }
 
         /* LOADING */
@@ -21,19 +21,24 @@
             background: rgba(255,255,255,0.9); padding: 15px 25px; border-radius: 50px;
             font-size: 12px; font-weight: bold; letter-spacing: 1px; color: #333;
             pointer-events: none; transition: opacity 0.5s;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
         }
 
         /* ANNOTATION ORBS */
         .annotation-marker {
-            position: absolute; width: 16px; height: 16px; cursor: pointer; z-index: 10; display: none;
+            position: absolute; width: 14px; height: 14px; cursor: pointer; z-index: 10; display: none;
         }
         .orb-graphic {
             width: 100%; height: 100%; border-radius: 50%;
-            background: #e67e22; border: 2px solid white;
+            background: #2c3e50; border: 2px solid white;
             box-shadow: 0 0 10px rgba(0,0,0,0.2);
-            transition: transform 0.2s;
+            transition: transform 0.2s, background 0.2s;
         }
-        .annotation-marker:hover .orb-graphic { transform: scale(1.5); }
+        .annotation-marker:hover .orb-graphic { 
+            transform: scale(1.5); 
+            background: #e67e22;
+            box-shadow: 0 0 15px rgba(230, 126, 34, 0.6);
+        }
 
         /* INFO PANEL */
         .info-card {
@@ -42,11 +47,13 @@
             border-left: 4px solid #e67e22; opacity: 0; pointer-events: none;
             transform: translateX(20px); transition: all 0.4s ease;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            font-family: 'Inter', sans-serif;
         }
         .info-card.active { opacity: 1; pointer-events: auto; transform: translateX(0); }
-        .info-card h2 { margin: 0 0 10px 0; font-size: 16px; text-transform: uppercase; letter-spacing: 1px; }
+        .info-card h2 { margin: 0 0 10px 0; font-size: 16px; text-transform: uppercase; letter-spacing: 1px; color: #111; font-weight: 700; }
         .info-card p { margin: 0 0 15px 0; font-size: 13px; line-height: 1.5; color: #555; }
-        .close-btn { background: #333; color: #fff; border: none; padding: 8px 16px; cursor: pointer; font-size: 11px; text-transform: uppercase; }
+        .close-btn { background: #111; color: #fff; border: none; padding: 8px 16px; cursor: pointer; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; border-radius: 4px;}
+        .close-btn:hover { background: #e67e22; }
     </style>
 </head>
 <body>
@@ -57,12 +64,13 @@
     <div class="info-card" id="infoPanel">
         <h2 id="featureTitle">Title</h2>
         <p id="featureDesc">Desc</p>
-        <button class="close-btn" onclick="resetView()">Reset</button>
+        <button class="close-btn" onclick="resetView()">RETURN</button>
     </div>
 
     <script>
         // --- 1. SETUP ---
         const MODEL_PATH = 'assets/NestEggFBCR.glb';
+        // SCALING: Use 1.0 initially. If model is tiny, try 39.37 (Meters to Inches)
         const GLOBAL_SCALE = 1.0; 
 
         // YOUR ANNOTATIONS (INCHES)
@@ -121,7 +129,7 @@
         loader.setDRACOLoader(draco);
 
         let model = null;
-        let modelGroup = new THREE.Group(); // Group allows us to rotate model independently of "Up"
+        let modelGroup = new THREE.Group(); // Group allows us to bob/rotate together
         scene.add(modelGroup);
 
         loader.load(MODEL_PATH, function(gltf) {
@@ -157,7 +165,7 @@
 
                 // TRANSFORM COORDINATES
                 // We must apply the same rotation to the coordinates that we applied to the model
-                // The model was rotated -90 deg on X. We do the same to the point.
+                // The model was rotated -90 deg on X. We do the same to the point vector.
                 const vec = ann.rawPos.clone();
                 vec.applyAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2); // Rotate coords
                 ann.worldPos = vec; 
@@ -171,7 +179,7 @@
 
                 // Track the model's position/rotation (The Group rotates, so we follow the group)
                 const screenPos = ann.worldPos.clone();
-                screenPos.applyMatrix4(modelGroup.matrixWorld); // Apply group animation (rotation/bobbing)
+                screenPos.applyMatrix4(modelGroup.matrixWorld); 
                 
                 screenPos.project(camera);
 
@@ -179,7 +187,10 @@
                 const y = (-(screenPos.y * 0.5) + 0.5) * window.innerHeight;
 
                 ann.element.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px)`;
-                ann.element.style.display = 'block';
+                
+                // Visibility Check (is it in front of camera?)
+                const isVisible = (Math.abs(screenPos.z) < 1);
+                ann.element.style.display = isVisible ? 'block' : 'none';
             });
         }
 
@@ -192,8 +203,8 @@
             const t = clock.getElapsedTime();
 
             if(modelGroup && !isZoomed) {
-                // BOBBING (Hover)
-                modelGroup.position.y = Math.sin(t * 1.5) * 0.15; // Faster, slightly higher amplitude
+                // BOBBING (Hover) - Applied to Group Y
+                modelGroup.position.y = Math.sin(t * 1.5) * 0.15; 
                 
                 // ROTATION (Spin around vertical Y axis)
                 modelGroup.rotation.y += 0.002; 
@@ -207,14 +218,16 @@
 
         function zoomTo(ann) {
             isZoomed = true;
+            // Move camera
             gsap.to(camera.position, { duration: 1.5, x: ann.cameraPos.x, y: ann.cameraPos.y, z: ann.cameraPos.z });
-            gsap.to(controls.target, { duration: 1.5, x: 0, y: 0, z: 0 }); // Look at center
+            // Look at center (0,0,0) where the model is
+            gsap.to(controls.target, { duration: 1.5, x: 0, y: 0, z: 0 });
             
             document.getElementById('featureTitle').innerText = ann.title;
             document.getElementById('featureDesc').innerText = ann.desc;
             document.getElementById('infoPanel').classList.add('active');
             
-            // Hide orbs
+            // Hide orbs while zoomed
             annotations.forEach(a => a.element.style.opacity = 0);
         }
 
