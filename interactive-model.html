@@ -91,7 +91,7 @@
         const MODEL_PATH = 'assets/NestEggFBCR.glb'; 
         const GLOBAL_SCALE = 1.0; 
 
-        // --- 2. DATA: YOUR COORDINATES ---
+        // --- 2. DATA: YOUR COORDINATES (INCHES) ---
         const annotations = [
             {
                 id: 1,
@@ -152,12 +152,11 @@
         const fillLight = new THREE.DirectionalLight(0xe67e22, 0.5);
         fillLight.position.set(-5, 0, -5); scene.add(fillLight);
 
-        // --- 5. LOAD MODEL (WITH DRACO SUPPORT) ---
+        // --- 5. LOAD MODEL (WITH DRACO FIX) ---
         const loader = new THREE.GLTFLoader();
         
-        // ** CONFIGURING DRACO LOADER **
+        // This is the fix for the 670kb file
         const dracoLoader = new THREE.DRACOLoader();
-        // Point to the CDN for the decoder files (wasm/js)
         dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
         loader.setDRACOLoader(dracoLoader);
 
@@ -192,7 +191,7 @@
 
         }, undefined, function (error) {
             console.error(error);
-            document.getElementById('loader').innerText = "ERROR LOADING MODEL: Check Console";
+            document.getElementById('loader').innerText = "ERROR LOADING MODEL: " + error;
         });
 
         // --- 6. MARKERS ---
@@ -213,14 +212,12 @@
             if (!model) return;
             annotations.forEach(ann => {
                 const screenPos = ann.position.clone();
-                // If markers rotate with model, uncomment next line:
-                // screenPos.applyMatrix4(model.matrixWorld);
                 screenPos.project(camera);
                 const x = (screenPos.x * 0.5 + 0.5) * window.innerWidth;
                 const y = (-(screenPos.y * 0.5) + 0.5) * window.innerHeight;
                 ann.element.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px)`;
                 
-                // Fix visibility check (prevent showing through model)
+                // Hide if behind model
                 const isVisible = (Math.abs(screenPos.z) < 1); 
                 ann.element.style.display = isVisible ? 'block' : 'none';
             });
