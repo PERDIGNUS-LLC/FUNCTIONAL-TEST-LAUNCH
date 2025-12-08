@@ -7,6 +7,7 @@
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://unpkg.com/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://unpkg.com/three@0.128.0/examples/js/loaders/DRACOLoader.js"></script>
     <script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
 
@@ -15,97 +16,63 @@
         body { margin: 0; overflow: hidden; background: transparent; font-family: 'Helvetica Neue', Arial, sans-serif; }
         
         #engineering-canvas {
-            width: 100vw;
-            height: 100vh;
-            display: block;
-            outline: none;
-            cursor: grab;
+            width: 100vw; height: 100vh;
+            display: block; outline: none; cursor: grab;
         }
         #engineering-canvas:active { cursor: grabbing; }
 
         /* 2. LOADER */
         #loader {
-            position: absolute;
-            top: 50%; left: 50%;
+            position: absolute; top: 50%; left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 12px; color: #2c3e50;
-            letter-spacing: 2px; font-weight: bold;
-            pointer-events: none;
-            background: rgba(255,255,255,0.9);
+            font-size: 12px; color: #2c3e50; letter-spacing: 2px; font-weight: bold;
+            pointer-events: none; background: rgba(255,255,255,0.9);
             padding: 15px 30px; border-radius: 30px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
         }
 
-        /* 3. ANNOTATION MARKERS (Glowing Orbs) */
+        /* 3. ANNOTATION MARKERS */
         .annotation-marker {
-            position: absolute;
-            width: 24px; height: 24px;
-            display: none; /* Hidden until model loads */
-            cursor: pointer; z-index: 10;
+            position: absolute; width: 24px; height: 24px;
+            display: none; cursor: pointer; z-index: 10;
         }
-
         .orb-graphic {
             width: 100%; height: 100%;
             background: rgba(44, 62, 80, 0.9);
-            border: 2px solid #ffffff;
-            border-radius: 50%;
+            border: 2px solid #ffffff; border-radius: 50%;
             box-shadow: 0 0 15px rgba(44, 62, 80, 0.3);
-            transition: all 0.3s ease;
-            animation: pulse 3s infinite;
+            transition: all 0.3s ease; animation: pulse 3s infinite;
         }
-
         .annotation-marker:hover .orb-graphic {
-            background: #e67e22; /* Brand Orange */
-            transform: scale(1.3);
+            background: #e67e22; transform: scale(1.3);
             box-shadow: 0 0 25px rgba(230, 126, 34, 0.6);
         }
-
         @keyframes pulse {
             0% { box-shadow: 0 0 0 0 rgba(44, 62, 80, 0.2); }
             70% { box-shadow: 0 0 0 8px rgba(44, 62, 80, 0); }
             100% { box-shadow: 0 0 0 0 rgba(44, 62, 80, 0); }
         }
 
-        /* 4. INFO CARD (The Pop-up) */
+        /* 4. INFO CARD */
         .info-card {
-            position: absolute;
-            top: 15%; right: 5%;
-            width: 300px;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(12px);
-            padding: 30px;
-            border-left: 4px solid #e67e22;
+            position: absolute; top: 15%; right: 5%; width: 300px;
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px);
+            padding: 30px; border-left: 4px solid #e67e22;
             box-shadow: 0 20px 50px rgba(0,0,0,0.1);
             opacity: 0; pointer-events: none;
             transform: translateX(40px);
             transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
             border-radius: 0 12px 12px 0;
         }
-
-        .info-card.active {
-            opacity: 1; pointer-events: auto;
-            transform: translateX(0);
-        }
-
-        .info-card h2 {
-            margin: 0 0 10px 0; font-size: 18px; color: #2c3e50;
-            text-transform: uppercase; letter-spacing: 1px;
-        }
-
-        .info-card p {
-            margin: 0 0 20px 0; font-size: 14px; color: #555;
-            line-height: 1.6;
-        }
-
+        .info-card.active { opacity: 1; pointer-events: auto; transform: translateX(0); }
+        .info-card h2 { margin: 0 0 10px 0; font-size: 18px; color: #2c3e50; text-transform: uppercase; letter-spacing: 1px; }
+        .info-card p { margin: 0 0 20px 0; font-size: 14px; color: #555; line-height: 1.6; }
         .close-btn {
-            background: #2c3e50; color: white;
-            border: none; padding: 10px 20px;
-            cursor: pointer; font-size: 11px;
-            text-transform: uppercase; letter-spacing: 1px;
+            background: #2c3e50; color: white; border: none; padding: 10px 20px;
+            cursor: pointer; font-size: 11px; text-transform: uppercase; letter-spacing: 1px;
             border-radius: 4px; transition: background 0.2s;
         }
         .close-btn:hover { background: #e67e22; }
-
     </style>
 </head>
 <body>
@@ -122,10 +89,6 @@
     <script>
         // --- 1. CONFIGURATION ---
         const MODEL_PATH = 'assets/NestEggFBCR.glb'; 
-        const BG_COLOR = 0xffffff; 
-        
-        // IMPORTANT: If coordinates are in inches but model is in meters, use 39.37
-        // If both are inches, use 1.0. Start with 1.0.
         const GLOBAL_SCALE = 1.0; 
 
         // --- 2. DATA: YOUR COORDINATES ---
@@ -166,10 +129,10 @@
 
         // --- 3. SCENE SETUP ---
         const scene = new THREE.Scene();
-        scene.background = null; // Transparent background to blend with website
+        scene.background = null; 
 
         const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(8, 4, 8); // Start View
+        camera.position.set(8, 4, 8); 
 
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
@@ -178,27 +141,26 @@
         document.getElementById('engineering-canvas').appendChild(renderer.domElement);
 
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
-        controls.enableDamping = true;
-        controls.dampingFactor = 0.05;
-        controls.enablePan = false;
-        controls.minDistance = 4;
-        controls.maxDistance = 20;
+        controls.enableDamping = true; controls.dampingFactor = 0.05;
+        controls.enablePan = false; controls.minDistance = 4; controls.maxDistance = 20;
 
         // --- 4. LIGHTING ---
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
         scene.add(ambientLight);
-
         const mainLight = new THREE.DirectionalLight(0xffffff, 1.2);
-        mainLight.position.set(5, 10, 7);
-        mainLight.castShadow = true;
-        scene.add(mainLight);
-
+        mainLight.position.set(5, 10, 7); mainLight.castShadow = true; scene.add(mainLight);
         const fillLight = new THREE.DirectionalLight(0xe67e22, 0.5);
-        fillLight.position.set(-5, 0, -5);
-        scene.add(fillLight);
+        fillLight.position.set(-5, 0, -5); scene.add(fillLight);
 
-        // --- 5. LOAD MODEL ---
+        // --- 5. LOAD MODEL (WITH DRACO SUPPORT) ---
         const loader = new THREE.GLTFLoader();
+        
+        // ** CONFIGURING DRACO LOADER **
+        const dracoLoader = new THREE.DRACOLoader();
+        // Point to the CDN for the decoder files (wasm/js)
+        dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
+        loader.setDRACOLoader(dracoLoader);
+
         let model = null;
 
         loader.load(MODEL_PATH, function (gltf) {
@@ -212,8 +174,7 @@
 
             model.traverse((node) => {
                 if (node.isMesh) {
-                    node.castShadow = true;
-                    node.receiveShadow = true;
+                    node.castShadow = true; node.receiveShadow = true;
                 }
             });
 
@@ -221,20 +182,17 @@
             
             // Shadow Floor
             const shadowPlane = new THREE.Mesh(
-                new THREE.PlaneGeometry(20, 20),
-                new THREE.ShadowMaterial({ opacity: 0.1 })
+                new THREE.PlaneGeometry(20, 20), new THREE.ShadowMaterial({ opacity: 0.1 })
             );
-            shadowPlane.rotation.x = -Math.PI / 2;
-            shadowPlane.position.y = box.min.y - 0.5;
-            shadowPlane.receiveShadow = true;
-            scene.add(shadowPlane);
+            shadowPlane.rotation.x = -Math.PI / 2; shadowPlane.position.y = box.min.y - 0.5;
+            shadowPlane.receiveShadow = true; scene.add(shadowPlane);
 
             document.getElementById('loader').style.display = 'none';
             createMarkers();
 
         }, undefined, function (error) {
             console.error(error);
-            document.getElementById('loader').innerText = "ERROR LOADING MODEL";
+            document.getElementById('loader').innerText = "ERROR LOADING MODEL: Check Console";
         });
 
         // --- 6. MARKERS ---
@@ -244,8 +202,7 @@
                 div.className = 'annotation-marker';
                 div.innerHTML = '<div class="orb-graphic"></div>';
                 div.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    zoomToFeature(data);
+                    e.stopPropagation(); zoomToFeature(data);
                 });
                 document.body.appendChild(div);
                 data.element = div;
@@ -256,19 +213,21 @@
             if (!model) return;
             annotations.forEach(ann => {
                 const screenPos = ann.position.clone();
-                // If markers need to rotate with model, uncomment:
+                // If markers rotate with model, uncomment next line:
                 // screenPos.applyMatrix4(model.matrixWorld);
                 screenPos.project(camera);
                 const x = (screenPos.x * 0.5 + 0.5) * window.innerWidth;
                 const y = (-(screenPos.y * 0.5) + 0.5) * window.innerHeight;
                 ann.element.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px)`;
-                ann.element.style.display = (screenPos.z < 0.99) ? 'block' : 'none';
+                
+                // Fix visibility check (prevent showing through model)
+                const isVisible = (Math.abs(screenPos.z) < 1); 
+                ann.element.style.display = isVisible ? 'block' : 'none';
             });
         }
 
         // --- 7. INTERACTION ---
         let isZoomed = false;
-
         function zoomToFeature(data) {
             isZoomed = true;
             gsap.to(camera.position, { duration: 1.5, x: data.cameraPos.x, y: data.cameraPos.y, z: data.cameraPos.z, ease: "power2.inOut" });
@@ -277,7 +236,6 @@
             document.getElementById('featureTitle').innerText = data.title;
             document.getElementById('featureDesc').innerText = data.desc;
             document.getElementById('infoPanel').classList.add('active');
-            
             annotations.forEach(ann => ann.element.style.opacity = '0');
         }
 
