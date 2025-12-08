@@ -91,7 +91,7 @@
         const MODEL_PATH = 'assets/NestEggFBCR.glb'; 
         const GLOBAL_SCALE = 1.0; 
 
-        // --- 2. DATA: YOUR COORDINATES (INCHES) ---
+        // --- 2. DATA: YOUR COORDINATES ---
         const annotations = [
             {
                 id: 1,
@@ -152,10 +152,9 @@
         const fillLight = new THREE.DirectionalLight(0xe67e22, 0.5);
         fillLight.position.set(-5, 0, -5); scene.add(fillLight);
 
-        // --- 5. LOAD MODEL (WITH DRACO FIX) ---
+        // --- 5. LOAD MODEL (WITH DRACO & ROTATION FIX) ---
         const loader = new THREE.GLTFLoader();
         
-        // This is the fix for the 670kb file
         const dracoLoader = new THREE.DRACOLoader();
         dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
         loader.setDRACOLoader(dracoLoader);
@@ -166,7 +165,23 @@
             model = gltf.scene;
             model.scale.set(GLOBAL_SCALE, GLOBAL_SCALE, GLOBAL_SCALE);
             
-            // Center Model
+            // 1. ROTATE MODEL UPRIGHT (Fixing the sideways issue)
+            // -90 degrees on X axis converts Z-up (CAD) to Y-up (Web)
+            model.rotation.x = -Math.PI / 2;
+
+            // 2. APPLY SAME ROTATION TO ANNOTATIONS
+            // Since the coords are relative to the CAD origin, we must rotate them too.
+            const rotationMatrix = new THREE.Matrix4().makeRotationX(-Math.PI / 2);
+            annotations.forEach(ann => {
+                ann.position.applyMatrix4(rotationMatrix);
+                // Also update camera targets to match new orientation
+                const targetVec = new THREE.Vector3(ann.cameraTarget.x, ann.cameraTarget.y, ann.cameraTarget.z);
+                targetVec.applyMatrix4(rotationMatrix);
+                ann.cameraTarget = { x: targetVec.x, y: targetVec.y, z: targetVec.z };
+            });
+
+            // 3. Center Model
+            // We calculate the center AFTER rotation to be safe
             const box = new THREE.Box3().setFromObject(model);
             const center = box.getCenter(new THREE.Vector3());
             model.position.sub(center); 
@@ -183,7 +198,7 @@
             const shadowPlane = new THREE.Mesh(
                 new THREE.PlaneGeometry(20, 20), new THREE.ShadowMaterial({ opacity: 0.1 })
             );
-            shadowPlane.rotation.x = -Math.PI / 2; shadowPlane.position.y = box.min.y - 0.5;
+            shadowPlane.rotation.x = -Math.PI / 2; shadowPlane.position.y = -2; // Push floor down a bit
             shadowPlane.receiveShadow = true; scene.add(shadowPlane);
 
             document.getElementById('loader').style.display = 'none';
@@ -191,7 +206,7 @@
 
         }, undefined, function (error) {
             console.error(error);
-            document.getElementById('loader').innerText = "ERROR LOADING MODEL: " + error;
+            document.getElementById('loader').innerText = "ERROR LOADING MODEL: Check Console";
         });
 
         // --- 6. MARKERS ---
@@ -217,9 +232,8 @@
                 const y = (-(screenPos.y * 0.5) + 0.5) * window.innerHeight;
                 ann.element.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px)`;
                 
-                // Hide if behind model
-                const isVisible = (Math.abs(screenPos.z) < 1); 
-                ann.element.style.display = isVisible ? 'block' : 'none';
+                // Show markers always (for now) to help debug positions
+                ann.element.style.display = 'block';
             });
         }
 
