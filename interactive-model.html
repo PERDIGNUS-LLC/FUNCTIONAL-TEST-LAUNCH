@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NestEgg 3D Component</title>
+    <title>NestEgg Component</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://unpkg.com/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
@@ -12,273 +12,224 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
 
     <style>
-        /* 1. CONTAINER & CANVAS */
         body { margin: 0; overflow: hidden; background: transparent; font-family: 'Helvetica Neue', Arial, sans-serif; }
-        
-        #engineering-canvas {
-            width: 100vw; height: 100vh;
-            display: block; outline: none; cursor: grab;
-        }
-        #engineering-canvas:active { cursor: grabbing; }
+        #canvas-container { width: 100vw; height: 100vh; display: block; }
 
-        /* 2. LOADER */
+        /* LOADING */
         #loader {
-            position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 12px; color: #2c3e50; letter-spacing: 2px; font-weight: bold;
-            pointer-events: none; background: rgba(255,255,255,0.9);
-            padding: 15px 30px; border-radius: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(255,255,255,0.9); padding: 15px 25px; border-radius: 50px;
+            font-size: 12px; font-weight: bold; letter-spacing: 1px; color: #333;
+            pointer-events: none; transition: opacity 0.5s;
         }
 
-        /* 3. ANNOTATION MARKERS */
+        /* ANNOTATION ORBS */
         .annotation-marker {
-            position: absolute; width: 24px; height: 24px;
-            display: none; cursor: pointer; z-index: 10;
+            position: absolute; width: 16px; height: 16px; cursor: pointer; z-index: 10; display: none;
         }
         .orb-graphic {
-            width: 100%; height: 100%;
-            background: rgba(44, 62, 80, 0.9);
-            border: 2px solid #ffffff; border-radius: 50%;
-            box-shadow: 0 0 15px rgba(44, 62, 80, 0.3);
-            transition: all 0.3s ease; animation: pulse 3s infinite;
+            width: 100%; height: 100%; border-radius: 50%;
+            background: #e67e22; border: 2px solid white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
         }
-        .annotation-marker:hover .orb-graphic {
-            background: #e67e22; transform: scale(1.3);
-            box-shadow: 0 0 25px rgba(230, 126, 34, 0.6);
-        }
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(44, 62, 80, 0.2); }
-            70% { box-shadow: 0 0 0 8px rgba(44, 62, 80, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(44, 62, 80, 0); }
-        }
+        .annotation-marker:hover .orb-graphic { transform: scale(1.5); }
 
-        /* 4. INFO CARD */
+        /* INFO PANEL */
         .info-card {
-            position: absolute; top: 15%; right: 5%; width: 300px;
-            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px);
-            padding: 30px; border-left: 4px solid #e67e22;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.1);
-            opacity: 0; pointer-events: none;
-            transform: translateX(40px);
-            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
-            border-radius: 0 12px 12px 0;
+            position: absolute; top: 20%; right: 5%; width: 280px;
+            background: rgba(255,255,255,0.95); padding: 25px; border-radius: 8px;
+            border-left: 4px solid #e67e22; opacity: 0; pointer-events: none;
+            transform: translateX(20px); transition: all 0.4s ease;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
         }
         .info-card.active { opacity: 1; pointer-events: auto; transform: translateX(0); }
-        .info-card h2 { margin: 0 0 10px 0; font-size: 18px; color: #2c3e50; text-transform: uppercase; letter-spacing: 1px; }
-        .info-card p { margin: 0 0 20px 0; font-size: 14px; color: #555; line-height: 1.6; }
-        .close-btn {
-            background: #2c3e50; color: white; border: none; padding: 10px 20px;
-            cursor: pointer; font-size: 11px; text-transform: uppercase; letter-spacing: 1px;
-            border-radius: 4px; transition: background 0.2s;
-        }
-        .close-btn:hover { background: #e67e22; }
+        .info-card h2 { margin: 0 0 10px 0; font-size: 16px; text-transform: uppercase; letter-spacing: 1px; }
+        .info-card p { margin: 0 0 15px 0; font-size: 13px; line-height: 1.5; color: #555; }
+        .close-btn { background: #333; color: #fff; border: none; padding: 8px 16px; cursor: pointer; font-size: 11px; text-transform: uppercase; }
     </style>
 </head>
 <body>
 
-    <div id="loader">LOADING ENGINEERING MODEL...</div>
-    <div id="engineering-canvas"></div>
+    <div id="loader">LOADING MODEL...</div>
+    <div id="canvas-container"></div>
 
     <div class="info-card" id="infoPanel">
-        <h2 id="featureTitle">Feature</h2>
-        <p id="featureDesc">Description.</p>
-        <button class="close-btn" onclick="resetView()">Reset View</button>
+        <h2 id="featureTitle">Title</h2>
+        <p id="featureDesc">Desc</p>
+        <button class="close-btn" onclick="resetView()">Reset</button>
     </div>
 
     <script>
-        // --- 1. CONFIGURATION ---
-        const MODEL_PATH = 'assets/NestEggFBCR.glb'; 
+        // --- 1. SETUP ---
+        const MODEL_PATH = 'assets/NestEggFBCR.glb';
         const GLOBAL_SCALE = 1.0; 
 
-        // --- 2. DATA: YOUR COORDINATES ---
+        // YOUR ANNOTATIONS (INCHES)
         const annotations = [
             {
-                id: 1,
-                title: "1. Entrance Aperture",
-                desc: "Primary biological ingress point, dimensioned specifically for target avian species to exclude larger predators.",
-                position: new THREE.Vector3(2.509, 0.00, 3.672), 
-                cameraTarget: { x: 2.509, y: 0.00, z: 3.672 },
-                cameraPos: { x: 6, y: 2, z: 8 } 
+                id: 1, title: "1. Entrance Aperture",
+                desc: "Dimensioned specifically for target species exclusion.",
+                rawPos: new THREE.Vector3(2.509, 0.00, 3.672),
+                cameraPos: { x: 5, y: 2, z: 5 }
             },
             {
-                id: 2,
-                title: "2. Ventilation Aperture",
-                desc: "Lateral airflow intake designed to promote the stack effect and regulate internal cavity temperature.",
-                position: new THREE.Vector3(0.0, -2.149, 3.849),
-                cameraTarget: { x: 0.0, y: -2.149, z: 3.849 },
-                cameraPos: { x: 0.0, y: -4.0, z: 7.0 }
+                id: 2, title: "2. Ventilation Aperture",
+                desc: "Promotes stack effect for thermal regulation.",
+                rawPos: new THREE.Vector3(0.0, -2.149, 3.849),
+                cameraPos: { x: 0, y: -2, z: 6 }
             },
             {
-                id: 3,
-                title: "3. Rear Mounting Interface",
-                desc: "Universal mounting plane compatible with standard bracketry for rapid field deployment.",
-                position: new THREE.Vector3(-0.877, 0.036, -3.951),
-                cameraTarget: { x: -0.877, y: 0.036, z: -3.951 },
-                cameraPos: { x: -5.0, y: 1.0, z: -7.0 }
+                id: 3, title: "3. Rear Mounting Interface",
+                desc: "Universal bracketry compatibility.",
+                rawPos: new THREE.Vector3(-0.877, 0.036, -3.951),
+                cameraPos: { x: -5, y: 1, z: -5 }
             },
             {
-                id: 4,
-                title: "4. Drainage Aperture",
-                desc: "Base-integrated geometry ensuring moisture egress and pathogen control.",
-                position: new THREE.Vector3(-0.003, 0.036, -0.419),
-                cameraTarget: { x: -0.003, y: 0.036, z: -0.419 },
-                cameraPos: { x: 0, y: 3.0, z: 4.0 }
+                id: 4, title: "4. Drainage Aperture",
+                desc: "Ensures moisture egress and pathogen control.",
+                rawPos: new THREE.Vector3(-0.003, 0.036, -0.419),
+                cameraPos: { x: 0, y: 2, z: 3 }
             }
         ];
 
-        // --- 3. SCENE SETUP ---
+        // Scene
         const scene = new THREE.Scene();
-        scene.background = null; 
-
-        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(8, 4, 8); 
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 0.1, 100);
+        camera.position.set(8, 4, 8); // Initial view
 
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.shadowMap.enabled = true;
         renderer.outputEncoding = THREE.sRGBEncoding;
-        document.getElementById('engineering-canvas').appendChild(renderer.domElement);
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
 
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
-        controls.enableDamping = true; controls.dampingFactor = 0.05;
-        controls.enablePan = false; controls.minDistance = 4; controls.maxDistance = 20;
+        controls.enableDamping = true;
+        controls.enablePan = false;
 
-        // --- 4. LIGHTING ---
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
-        scene.add(ambientLight);
-        const mainLight = new THREE.DirectionalLight(0xffffff, 1.2);
-        mainLight.position.set(5, 10, 7); mainLight.castShadow = true; scene.add(mainLight);
-        const fillLight = new THREE.DirectionalLight(0xe67e22, 0.5);
-        fillLight.position.set(-5, 0, -5); scene.add(fillLight);
+        // Lights
+        const ambLight = new THREE.AmbientLight(0xffffff, 0.7);
+        scene.add(ambLight);
+        const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
+        dirLight.position.set(5, 10, 7);
+        scene.add(dirLight);
 
-        // --- 5. LOAD MODEL (WITH DRACO & ROTATION FIX) ---
+        // --- 2. LOAD MODEL ---
         const loader = new THREE.GLTFLoader();
-        
-        const dracoLoader = new THREE.DRACOLoader();
-        dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
-        loader.setDRACOLoader(dracoLoader);
+        const draco = new THREE.DRACOLoader();
+        draco.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
+        loader.setDRACOLoader(draco);
 
         let model = null;
+        let modelGroup = new THREE.Group(); // Group allows us to rotate model independently of "Up"
+        scene.add(modelGroup);
 
-        loader.load(MODEL_PATH, function (gltf) {
+        loader.load(MODEL_PATH, function(gltf) {
             model = gltf.scene;
             model.scale.set(GLOBAL_SCALE, GLOBAL_SCALE, GLOBAL_SCALE);
             
-            // 1. ROTATE MODEL UPRIGHT (Fixing the sideways issue)
-            // -90 degrees on X axis converts Z-up (CAD) to Y-up (Web)
+            // FIX ROTATION: Rotate -90 on X to stand up (Z-up to Y-up)
             model.rotation.x = -Math.PI / 2;
 
-            // 2. APPLY SAME ROTATION TO ANNOTATIONS
-            // Since the coords are relative to the CAD origin, we must rotate them too.
-            const rotationMatrix = new THREE.Matrix4().makeRotationX(-Math.PI / 2);
-            annotations.forEach(ann => {
-                ann.position.applyMatrix4(rotationMatrix);
-                // Also update camera targets to match new orientation
-                const targetVec = new THREE.Vector3(ann.cameraTarget.x, ann.cameraTarget.y, ann.cameraTarget.z);
-                targetVec.applyMatrix4(rotationMatrix);
-                ann.cameraTarget = { x: targetVec.x, y: targetVec.y, z: targetVec.z };
-            });
-
-            // 3. Center Model
-            // We calculate the center AFTER rotation to be safe
+            // Center it
             const box = new THREE.Box3().setFromObject(model);
             const center = box.getCenter(new THREE.Vector3());
             model.position.sub(center); 
 
-            model.traverse((node) => {
-                if (node.isMesh) {
-                    node.castShadow = true; node.receiveShadow = true;
-                }
-            });
-
-            scene.add(model);
-            
-            // Shadow Floor
-            const shadowPlane = new THREE.Mesh(
-                new THREE.PlaneGeometry(20, 20), new THREE.ShadowMaterial({ opacity: 0.1 })
-            );
-            shadowPlane.rotation.x = -Math.PI / 2; shadowPlane.position.y = -2; // Push floor down a bit
-            shadowPlane.receiveShadow = true; scene.add(shadowPlane);
-
+            modelGroup.add(model);
             document.getElementById('loader').style.display = 'none';
-            createMarkers();
+            
+            initAnnotations();
 
-        }, undefined, function (error) {
-            console.error(error);
-            document.getElementById('loader').innerText = "ERROR LOADING MODEL: Check Console";
+        }, undefined, function(err) {
+            document.getElementById('loader').innerText = "Error: " + err;
         });
 
-        // --- 6. MARKERS ---
-        function createMarkers() {
-            annotations.forEach(data => {
+        // --- 3. ANNOTATIONS ---
+        function initAnnotations() {
+            annotations.forEach(ann => {
                 const div = document.createElement('div');
                 div.className = 'annotation-marker';
                 div.innerHTML = '<div class="orb-graphic"></div>';
-                div.addEventListener('click', (e) => {
-                    e.stopPropagation(); zoomToFeature(data);
-                });
+                div.onclick = (e) => { e.stopPropagation(); zoomTo(ann); };
                 document.body.appendChild(div);
-                data.element = div;
+                ann.element = div;
+
+                // TRANSFORM COORDINATES
+                // We must apply the same rotation to the coordinates that we applied to the model
+                // The model was rotated -90 deg on X. We do the same to the point.
+                const vec = ann.rawPos.clone();
+                vec.applyAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2); // Rotate coords
+                ann.worldPos = vec; 
             });
         }
 
-        function updateMarkers() {
-            if (!model) return;
+        function updateAnnotations() {
+            if(!model) return;
             annotations.forEach(ann => {
-                const screenPos = ann.position.clone();
+                if(!ann.worldPos) return;
+
+                // Track the model's position/rotation (The Group rotates, so we follow the group)
+                const screenPos = ann.worldPos.clone();
+                screenPos.applyMatrix4(modelGroup.matrixWorld); // Apply group animation (rotation/bobbing)
+                
                 screenPos.project(camera);
+
                 const x = (screenPos.x * 0.5 + 0.5) * window.innerWidth;
                 const y = (-(screenPos.y * 0.5) + 0.5) * window.innerHeight;
+
                 ann.element.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px)`;
-                
-                // Show markers always (for now) to help debug positions
                 ann.element.style.display = 'block';
             });
         }
 
-        // --- 7. INTERACTION ---
+        // --- 4. ANIMATION & INTERACTION ---
         let isZoomed = false;
-        function zoomToFeature(data) {
+        const clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const t = clock.getElapsedTime();
+
+            if(modelGroup && !isZoomed) {
+                // BOBBING (Hover)
+                modelGroup.position.y = Math.sin(t * 1.5) * 0.15; // Faster, slightly higher amplitude
+                
+                // ROTATION (Spin around vertical Y axis)
+                modelGroup.rotation.y += 0.002; 
+            }
+
+            controls.update();
+            renderer.render(scene, camera);
+            updateAnnotations();
+        }
+        animate();
+
+        function zoomTo(ann) {
             isZoomed = true;
-            gsap.to(camera.position, { duration: 1.5, x: data.cameraPos.x, y: data.cameraPos.y, z: data.cameraPos.z, ease: "power2.inOut" });
-            gsap.to(controls.target, { duration: 1.5, x: data.cameraTarget.x, y: data.cameraTarget.y, z: data.cameraTarget.z, ease: "power2.inOut", onUpdate: () => controls.update() });
+            gsap.to(camera.position, { duration: 1.5, x: ann.cameraPos.x, y: ann.cameraPos.y, z: ann.cameraPos.z });
+            gsap.to(controls.target, { duration: 1.5, x: 0, y: 0, z: 0 }); // Look at center
             
-            document.getElementById('featureTitle').innerText = data.title;
-            document.getElementById('featureDesc').innerText = data.desc;
+            document.getElementById('featureTitle').innerText = ann.title;
+            document.getElementById('featureDesc').innerText = ann.desc;
             document.getElementById('infoPanel').classList.add('active');
-            annotations.forEach(ann => ann.element.style.opacity = '0');
+            
+            // Hide orbs
+            annotations.forEach(a => a.element.style.opacity = 0);
         }
 
         window.resetView = function() {
             isZoomed = false;
-            gsap.to(camera.position, { duration: 1.2, x: 8, y: 4, z: 8, ease: "power2.inOut" });
-            gsap.to(controls.target, { duration: 1.2, x: 0, y: 0, z: 0, ease: "power2.inOut", onUpdate: () => controls.update() });
-            
+            gsap.to(camera.position, { duration: 1.2, x: 8, y: 4, z: 8 });
             document.getElementById('infoPanel').classList.remove('active');
-            annotations.forEach(ann => ann.element.style.opacity = '1');
+            annotations.forEach(a => a.element.style.opacity = 1);
         }
 
-        // --- 8. LOOP ---
-        const clock = new THREE.Clock();
-        function animate() {
-            requestAnimationFrame(animate);
-            const time = clock.getElapsedTime();
-            if (model && !isZoomed) {
-                model.position.y = Math.sin(time * 0.5) * 0.05;
-                model.rotation.y += 0.001; 
-            }
-            controls.update();
-            renderer.render(scene, camera);
-            updateMarkers();
-        }
-        animate();
-
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
+        window.onresize = () => {
+            camera.aspect = window.innerWidth/window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
-        });
+        };
     </script>
 </body>
 </html>
