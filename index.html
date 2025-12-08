@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TerraDignus | Engineering Detail</title>
+    <title>TerraDignus | The NestEgg</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
@@ -18,7 +18,7 @@
             color: #333;
         }
 
-        /* --- HEADER (MATCHING VIDEO) --- */
+        /* --- HEADER --- */
         header {
             position: absolute;
             top: 40px;
@@ -30,53 +30,53 @@
             font-family: 'Roboto', sans-serif;
             font-weight: 700;
             font-size: 24px;
-            color: #2C3E50; /* Dark Slate Blue/Grey */
+            color: #2C3E50;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
-        /* --- MAIN CONTENT --- */
+        /* --- VIEWPORT & UI --- */
         #viewport {
             position: relative;
             width: 100%;
             height: 85vh;
             background: #ffffff;
             overflow: hidden;
+            cursor: default;
         }
 
-        /* SVG Overlay for Engineering Lines */
         #ui-layer {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none; /* Let clicks pass through to 3D canvas */
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
             z-index: 5;
         }
 
-        /* Hotspots (Clickable dots) */
+        /* Hotspots */
         .hotspot {
             position: absolute;
-            width: 20px;
-            height: 20px;
+            width: 18px;
+            height: 18px;
             border-radius: 50%;
-            border: 2px solid #333; /* Engineering style ring */
+            border: 2px solid #333;
+            background: rgba(255,255,255,0.2);
             cursor: pointer;
             z-index: 10;
             transform: translate(-50%, -50%);
-            transition: transform 0.2s, background-color 0.2s;
+            transition: all 0.3s ease;
         }
 
         .hotspot:hover {
             transform: translate(-50%, -50%) scale(1.3);
-            background-color: rgba(0,0,0,0.1);
+            background-color: #333;
+            border-color: #333;
         }
 
-        /* Labels (Hidden by default) */
+        /* Labels */
         .label-text {
             position: absolute;
-            font-family: 'Times New Roman', serif; /* Engineering drawing font style */
+            font-family: 'Times New Roman', serif;
             font-size: 18px;
             color: #000;
             white-space: nowrap;
@@ -88,72 +88,73 @@
             text-underline-offset: 4px;
         }
 
-        /* --- FOOTER (MATCHING SCREENSHOT) --- */
-        footer {
-            width: 100%;
+        .desc-text {
+            display: block;
+            font-family: 'Roboto', sans-serif;
+            font-size: 14px;
+            color: #555;
+            margin-top: 4px;
+            text-decoration: none;
+            max-width: 250px;
+            white-space: normal;
+            line-height: 1.4;
         }
 
-        /* Top Footer Section (Grey) */
+        /* --- FOOTER --- */
+        footer { width: 100%; }
+
         .footer-ip {
-            background-color: #EBEBEB; /* Light Grey */
-            padding: 60px 20px;
+            background-color: #EBEBEB;
+            padding: 50px 20px;
             text-align: center;
             color: #1a1a1a;
         }
 
         .footer-ip h3 {
-            font-size: 22px;
-            margin-bottom: 15px;
+            font-size: 20px;
+            margin-bottom: 10px;
             font-weight: 700;
         }
 
         .footer-ip p {
             font-size: 16px;
-            margin: 5px 0;
-            line-height: 1.5;
+            margin: 0 0 25px 0;
+            color: #444;
         }
 
         .patent-list {
-            margin-top: 30px;
             font-family: 'Courier New', monospace;
-            font-size: 14px;
-            color: #2F4F4F; /* Dark Slate Greenish hue from image */
+            font-size: 13px;
+            color: #2F4F4F;
+            line-height: 1.8;
         }
 
-        .patent-item {
-            margin: 8px 0;
-            letter-spacing: 0.5px;
-        }
-
-        /* Bottom Footer Section (Black) */
         .footer-brand {
-            background-color: #080808; /* Near Black */
+            background-color: #080808;
             color: #ffffff;
-            padding: 60px 20px;
+            padding: 50px 20px;
             text-align: center;
         }
 
         .company-name {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 1px;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
         }
 
         .sub-brand {
             font-family: 'Playfair Display', serif;
-            font-size: 18px;
+            font-size: 16px;
             color: #ccc;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
         }
 
         .copyright {
             font-size: 12px;
             color: #666;
-            margin-top: 20px;
         }
-
     </style>
 </head>
 <body>
@@ -164,10 +165,14 @@
 
     <div id="viewport">
         <svg id="ui-layer">
-            <polyline id="connector-line" points="" style="fill:none;stroke:black;stroke-width:2;opacity:0;transition:opacity 0.5s" />
+            <polyline id="connector-line" points="" 
+                      style="fill:none;stroke:black;stroke-width:1.5;opacity:0;transition:opacity 0.4s" />
         </svg>
         
-        <div id="active-label" class="label-text">Detailed Description</div>
+        <div id="active-label" class="label-text">
+            <span id="label-title">Title</span>
+            <span id="label-desc" class="desc-text">Description goes here.</span>
+        </div>
     </div>
 
     <footer>
@@ -176,9 +181,9 @@
             <p>Our technology is protected by pending United States Patents.</p>
             
             <div class="patent-list">
-                <div class="patent-item">USPTO PATENT PENDING: Modular Wildlife Habitation System</div>
-                <div class="patent-item">USPTO PATENT PENDING: In-Situ Monolithic Composite System</div>
-                <div class="patent-item">USPTO PATENT PENDING: Variable-Volume Wildlife Habitation System</div>
+                <div>USPTO PATENT PENDING: Modular Wildlife Habitation System</div>
+                <div>USPTO PATENT PENDING: In-Situ Monolithic Composite System</div>
+                <div>USPTO PATENT PENDING: Variable-Volume Wildlife Habitation System</div>
             </div>
         </div>
 
@@ -190,130 +195,148 @@
     </footer>
 
     <script>
-        // --- SCENE SETUP ---
+        // --- 1. SCENE SETUP ---
         const container = document.getElementById('viewport');
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0xffffff);
 
         const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
-        const initialCamPos = { x: 0, y: 0, z: 9 }; // Front view initially
-        camera.position.set(initialCamPos.x, initialCamPos.y, initialCamPos.z);
+        // "Home" view position
+        const homePos = { x: 0, y: 0.5, z: 9 };
+        camera.position.set(homePos.x, homePos.y, homePos.z);
 
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         renderer.setSize(container.clientWidth, container.clientHeight);
         renderer.setPixelRatio(window.devicePixelRatio);
-        // Enable shadows for that realistic look
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         container.appendChild(renderer.domElement);
 
-        // --- LIGHTING (Studio Setup for "Clay" Look) ---
-        const ambLight = new THREE.AmbientLight(0xffffff, 0.6);
+        // --- 2. LIGHTING (Soft Studio) ---
+        const ambLight = new THREE.AmbientLight(0xffffff, 0.5);
         scene.add(ambLight);
 
-        const mainLight = new THREE.DirectionalLight(0xffffff, 0.8);
-        mainLight.position.set(5, 5, 5);
-        mainLight.castShadow = true;
-        mainLight.shadow.mapSize.width = 1024;
-        mainLight.shadow.mapSize.height = 1024;
-        scene.add(mainLight);
+        const keyLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        keyLight.position.set(5, 8, 5);
+        keyLight.castShadow = true;
+        keyLight.shadow.mapSize.width = 1024;
+        keyLight.shadow.mapSize.height = 1024;
+        scene.add(keyLight);
 
-        const fillLight = new THREE.DirectionalLight(0xffecd2, 0.4); // Warm fill
-        fillLight.position.set(-5, 0, 5);
+        const fillLight = new THREE.DirectionalLight(0xffecd2, 0.3);
+        fillLight.position.set(-5, 2, 5);
         scene.add(fillLight);
 
-        // --- CONTROLS ---
+        // --- 3. THE MODEL (Procedural "NestEgg" with Snout) ---
+        const nestEggGroup = new THREE.Group();
+        scene.add(nestEggGroup);
+
+        // Material (Matte Clay/Beige)
+        const clayMaterial = new THREE.MeshStandardMaterial({
+            color: 0xD6C8B5, // Matching your render color
+            roughness: 0.6,
+            metalness: 0.1,
+        });
+
+        // A. MAIN BODY (Egg Shape)
+        // Using a scaled sphere is the cleanest way to get a smooth egg
+        const bodyGeo = new THREE.SphereGeometry(1.6, 64, 64);
+        const bodyMesh = new THREE.Mesh(bodyGeo, clayMaterial);
+        bodyMesh.scale.set(1, 1.4, 1); // Stretch Y axis
+        bodyMesh.castShadow = true;
+        bodyMesh.receiveShadow = true;
+        nestEggGroup.add(bodyMesh);
+
+        // B. THE SNOUT (Entrance Tunnel)
+        // A cylinder rotated and intersected into the body
+        const snoutGeo = new THREE.CylinderGeometry(0.5, 0.6, 0.8, 64);
+        const snoutMesh = new THREE.Mesh(snoutGeo, clayMaterial);
+        // Positioned based on your images (Upper Left quadrant)
+        snoutMesh.rotation.z = Math.PI / 4; // Angle it 45 degrees
+        snoutMesh.rotation.y = -Math.PI / 6; // Slight turn toward front
+        snoutMesh.position.set(-1.0, 0.8, 0.7); 
+        snoutMesh.castShadow = true;
+        snoutMesh.receiveShadow = true;
+        nestEggGroup.add(snoutMesh);
+
+        // C. THE HOLE (Visual)
+        // Black circle cap at the end of the snout
+        const holeGeo = new THREE.CircleGeometry(0.4, 32);
+        const holeMat = new THREE.MeshBasicMaterial({ color: 0x111111 });
+        const holeMesh = new THREE.Mesh(holeGeo, holeMat);
+        // Align perfectly with snout end
+        holeMesh.rotation.z = Math.PI / 4; 
+        holeMesh.rotation.y = -Math.PI / 6;
+        holeMesh.rotation.x = -Math.PI / 2; // Face outward
+        // Slight offset to prevent z-fighting with snout cap
+        holeMesh.position.set(-1.25, 1.05, 0.95); 
+        nestEggGroup.add(holeMesh);
+
+        // --- 4. CONTROLS ---
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
         controls.dampingFactor = 0.05;
-        controls.enableZoom = false; // DISABLED AS REQUESTED
+        controls.enableZoom = false; // LOCKED ZOOM
         controls.enablePan = false;
         controls.rotateSpeed = 0.3; // SLOW ROTATION
-        
-        // --- MODEL (The Egg) ---
-        // Creating a shape that matches the screenshot (wider bottom, tapered top)
-        const points = [];
-        for (let i = 0; i <= 30; i++) {
-            const t = i / 30;
-            // Custom egg curve formula
-            const y = (t * 4) - 2; 
-            const x = Math.sin(t * Math.PI) * (1.5 - (t * 0.3)); 
-            points.push(new THREE.Vector2(x, y));
-        }
-        
-        const geo = new THREE.LatheGeometry(points, 64);
-        
-        // Material: Clay/Beige (Matching image_032f9b.jpg)
-        const mat = new THREE.MeshStandardMaterial({
-            color: 0xC6B89D, // Beige/Tan
-            roughness: 0.7,  // Matte finish
-            metalness: 0.1
-        });
+        controls.minPolarAngle = Math.PI / 4; // Limit vertical rotation
+        controls.maxPolarAngle = Math.PI - Math.PI / 4;
 
-        const egg = new THREE.Mesh(geo, mat);
-        egg.castShadow = true;
-        egg.receiveShadow = true;
-        scene.add(egg);
-
-        // --- THE ENTRY HOLE (Visual Trickery) ---
-        // Placing a dark circle to simulate the hole shown in drawing/render label '3'
-        const holeGeo = new THREE.CircleGeometry(0.5, 32);
-        const holeMat = new THREE.MeshBasicMaterial({ color: 0x2b2b2b }); // Dark Grey/Black
-        const hole = new THREE.Mesh(holeGeo, holeMat);
-        // Positioned based on label 3 in your drawing (mid-upper left)
-        hole.position.set(-0.95, 0.5, 1.0); 
-        hole.lookAt(-2, 0.8, 3); // Angle it slightly
-        egg.add(hole);
-
-        // --- ANNOTATION DATA ---
-        // Positions based on your 2D drawing (image_033f9a.png)
+        // --- 5. ANNOTATION DATA (Updated Positions) ---
         const annotations = [
             {
                 id: 1,
-                label: "Ventilation Aperture",
-                pos: new THREE.Vector3(0.6, 1.2, 1.0), // Label 4
-                camPos: { x: 3, y: 1.5, z: 3 }, // Zoom angle
-                lineDir: "right" // Draw line to the right
+                title: "Ventilation Aperture",
+                desc: "Passive thermal regulation vent.",
+                // Positioned high on the right shoulder (Label 4)
+                pos: new THREE.Vector3(0.8, 1.2, 0.9), 
+                camPos: { x: 3, y: 1.5, z: 4 },
+                lineDir: "right"
             },
             {
                 id: 2,
-                label: "Ingress Aperture",
-                pos: new THREE.Vector3(-0.8, 0.5, 1.1), // Label 3
-                camPos: { x: -3, y: 0.5, z: 3 },
+                title: "Ingress Tunnel",
+                desc: "Predator-resistant entry geometry.",
+                // Positioned on the snout (Label 3)
+                pos: new THREE.Vector3(-1.1, 0.9, 0.9), 
+                camPos: { x: -3, y: 1, z: 4 },
                 lineDir: "left"
             },
             {
                 id: 3,
-                label: "Basal Hemisphere",
-                pos: new THREE.Vector3(1.1, -1.0, 0.5), // Label 17
-                camPos: { x: 3, y: -1, z: 4 },
+                title: "Basal Hemisphere",
+                desc: "Impact-resistant composite shell.",
+                // Positioned low on the belly (Label 17)
+                pos: new THREE.Vector3(0, -1.0, 1.4), 
+                camPos: { x: 0, y: -2, z: 5 },
                 lineDir: "right"
             }
         ];
 
-        // --- UI LOGIC ---
+        // --- 6. INTERACTION LOGIC ---
         const uiLayer = document.getElementById('ui-layer');
         const connectorLine = document.getElementById('connector-line');
         const labelDiv = document.getElementById('active-label');
+        const labelTitle = document.getElementById('label-title');
+        const labelDesc = document.getElementById('label-desc');
         let activeAnnotation = null;
 
-        // Create Hotspots
+        // Create HTML Hotspots
         annotations.forEach(data => {
             const div = document.createElement('div');
             div.className = 'hotspot';
-            div.dataset.id = data.id;
             div.addEventListener('click', (e) => {
-                e.stopPropagation();
-                zoomTo(data);
+                e.stopPropagation(); // Stop click from hitting background
+                activateAnnotation(data);
             });
             container.appendChild(div);
-            data.element = div; // Store reference
+            data.element = div;
         });
 
-        function zoomTo(data) {
+        function activateAnnotation(data) {
             activeAnnotation = data;
-            
-            // 1. Animate Camera
+
+            // 1. Move Camera (Zoom In)
             gsap.to(camera.position, {
                 duration: 1.5,
                 x: data.camPos.x,
@@ -321,13 +344,18 @@
                 z: data.camPos.z,
                 ease: "power2.inOut"
             });
-            
-            // 2. Show UI Elements after delay
+
+            // 2. Update Text
+            labelTitle.innerText = data.title;
+            labelDesc.innerText = data.desc;
+
+            // 3. Reveal UI (Delayed for camera move)
             setTimeout(() => {
-                labelDiv.innerText = data.label;
-                labelDiv.style.opacity = 1;
-                connectorLine.style.opacity = 1;
-            }, 1000);
+                if(activeAnnotation === data) { // Check if still active
+                    labelDiv.style.opacity = 1;
+                    connectorLine.style.opacity = 1;
+                }
+            }, 800);
         }
 
         function resetView() {
@@ -338,48 +366,66 @@
             labelDiv.style.opacity = 0;
             connectorLine.style.opacity = 0;
 
-            // Reset Camera
+            // Reset Camera (Zoom Out)
             gsap.to(camera.position, {
                 duration: 1.5,
-                x: initialCamPos.x,
-                y: initialCamPos.y,
-                z: initialCamPos.z,
+                x: homePos.x,
+                y: homePos.y,
+                z: homePos.z,
                 ease: "power2.inOut"
             });
         }
 
-        // Global Click to Reset
+        // Background Click -> Reset
         container.addEventListener('click', resetView);
 
-        // --- UPDATE LOOP ---
+        // --- 7. RENDER LOOP ---
         function animate() {
             requestAnimationFrame(animate);
             controls.update();
+
+            // Rotate model slowly if idle? (Optional, disabled for engineering feel)
+            // nestEggGroup.rotation.y += 0.001; 
+
             renderer.render(scene, camera);
 
             // Update Hotspot Positions
             annotations.forEach(data => {
                 const screenPos = getScreenPos(data.pos);
                 
-                // Hide if behind model
-                if(screenPos.z > 1) {
-                    data.element.style.display = 'none';
+                // Simple Occlusion Check (is point behind the object?)
+                // We use distance to camera roughly
+                const dist = camera.position.distanceTo(data.pos);
+                // If it's on the back side of sphere, hide it (Dot Product method is better but this is simple)
+                // For this specific setup, we just hide if Z is too far back relative to view
+                
+                // Update CSS position
+                data.element.style.left = screenPos.x + 'px';
+                data.element.style.top = screenPos.y + 'px';
+
+                // Rough visibility check (simple z-index hiding)
+                if (screenPos.z > 1 || screenPos.z < 0) {
+                     data.element.style.opacity = 0;
+                     data.element.style.pointerEvents = 'none';
                 } else {
-                    data.element.style.display = 'block';
-                    data.element.style.left = screenPos.x + 'px';
-                    data.element.style.top = screenPos.y + 'px';
+                     data.element.style.opacity = 1;
+                     data.element.style.pointerEvents = 'auto';
                 }
             });
 
-            // Draw Engineering Line if active
+            // Draw Connector Line
             if (activeAnnotation && connectorLine.style.opacity > 0) {
                 drawConnector(activeAnnotation);
             }
         }
 
         function getScreenPos(vector3) {
+            // Must clone because project changes the vector
             const v = vector3.clone();
+            // We need to account for the Group rotation if we rotated the group
+            // But here we didn't rotate the group, only added children
             v.project(camera);
+
             const x = (v.x * 0.5 + 0.5) * container.clientWidth;
             const y = (-(v.y) * 0.5 + 0.5) * container.clientHeight;
             return { x, y, z: v.z };
@@ -387,32 +433,31 @@
 
         function drawConnector(data) {
             const start = getScreenPos(data.pos);
-            
-            // Define engineering line shape: Start -> Up/Out -> Elbow -> Text
-            // Hardcoded "Elbow" offsets for that technical look
-            const elbowX = data.lineDir === "right" ? start.x + 50 : start.x - 50;
-            const elbowY = start.y - 50;
-            const endX = data.lineDir === "right" ? elbowX + 100 : elbowX - 100;
-            
-            // Update SVG Line
-            // Points: Start -> Elbow -> End
-            const pointsString = `${start.x},${start.y} ${elbowX},${start.y} ${elbowX},${elbowY} ${endX},${elbowY}`;
-            
-            // Use simple 2-point line for cleaner look if preferred, but doing 3-point for "Tech" feel
-            // Let's match the screenshot style: Straight line out, then horizontal text
-            // Screenshot shows: Dot -> Straight Line -> Text
-            const textPad = 10;
-            
-            // Screenshot logic: Horizontal line to text
-            const lineEndX = data.lineDir === "right" ? start.x + 100 : start.x - 100;
-            const lineEndY = start.y; // Straight horizontal
-            
-            // Let's do the "Elbow" shown in drawing: Up and Over
-            connectorLine.setAttribute('points', `${start.x},${start.y} ${elbowX},${start.y} ${elbowX},${elbowY} ${endX},${elbowY}`);
+            const lineLength = 60;
+            const elbowHeight = 50;
 
-            // Position Label at end of line
-            labelDiv.style.left = (data.lineDir === "right" ? endX + textPad : endX - labelDiv.offsetWidth - textPad) + 'px';
-            labelDiv.style.top = (elbowY - 10) + 'px'; // Sits on top of the line
+            let p1, p2, p3;
+
+            // Engineering "Elbow" Style:
+            // Point 1: At the hotspot
+            // Point 2: Up/Down vertical offset
+            // Point 3: Left/Right horizontal to text
+            
+            p1 = { x: start.x, y: start.y };
+            p2 = { x: start.x, y: start.y - elbowHeight }; // Go Up
+            p3 = { x: (data.lineDir === 'right' ? start.x + lineLength : start.x - lineLength), y: p2.y }; // Go Sideways
+
+            // Update SVG Polyline
+            connectorLine.setAttribute('points', `${p1.x},${p1.y} ${p2.x},${p2.y} ${p3.x},${p3.y}`);
+
+            // Position Text at end of line
+            const textPad = 10;
+            if (data.lineDir === 'right') {
+                labelDiv.style.left = (p3.x + textPad) + 'px';
+            } else {
+                labelDiv.style.left = (p3.x - labelDiv.offsetWidth - textPad) + 'px';
+            }
+            labelDiv.style.top = (p3.y - 10) + 'px'; // Sit on the line
         }
 
         // Handle Resize
