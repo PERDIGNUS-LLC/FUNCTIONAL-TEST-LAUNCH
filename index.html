@@ -4,76 +4,52 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The NestEgg | Engineering Evaluation</title>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lato:wght@300;400&display=swap" rel="stylesheet">
-    
     <style>
-        body { margin: 0; padding: 0; font-family: 'Lato', sans-serif; background-color: #ffffff; color: #333; }
+        /* Reset & Layout */
+        body { margin: 0; padding: 0; font-family: sans-serif; }
         
-        /* HEADER / HERO SECTION */
-        header.hero {
-            padding: 80px 20px;
-            text-align: center;
-            background: #ffffff;
+        /* 3D Component Container */
+        #interactive-container {
+            width: 100%;
+            height: 85vh; /* Adjustable height */
+            background: #fff;
+            position: relative;
             border-bottom: 1px solid #eee;
         }
 
-        header.hero h1 {
-            font-family: 'Playfair Display', serif;
-            font-size: 3.5rem;
-            margin: 0;
-            color: #2c3e50;
-            letter-spacing: 1px;
-        }
-
-        header.hero p {
-            font-size: 1.1rem;
-            color: #7f8c8d;
-            margin-top: 15px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-        
-        /* 3D MODEL SECTION */
-        #model-section {
-            width: 100%;
-            height: 90vh;
-            position: relative;
-            background: #fafafa;
-        }
-
-        iframe#interactive-frame {
+        iframe {
             width: 100%;
             height: 100%;
             border: none;
             display: block;
         }
-
-        .section-badge {
-            position: absolute;
-            top: 20px; left: 50%; transform: translateX(-50%);
-            background: #e67e22; color: white;
-            padding: 6px 16px; border-radius: 20px;
-            font-size: 11px; font-weight: bold; letter-spacing: 1px;
-            z-index: 5; text-transform: uppercase;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        }
     </style>
 </head>
 <body>
 
-    <header class="hero">
-        <h1>The NestEgg™</h1>
-        <p>Advanced Composite Avian Habitation System</p>
-    </header>
+    <div id="header-placeholder"></div>
 
-    <section id="model-section">
-        <div class="section-badge">Interactive Engineering View</div>
-        <iframe id="interactive-frame" src="interactive-model.html" title="NestEgg 3D Model"></iframe>
+    <section id="interactive-container">
+        <iframe src="interactive-model.html" title="NestEgg Model"></iframe>
     </section>
 
-    <div id="footer-container" style="text-align:center; padding: 40px; color:#999; font-size:12px;">
-        &copy; 2025 PERDIGNUS LLC. PATENT PENDING.
-    </div>
+    <div id="footer-placeholder"></div>
+
+    <script>
+        async function loadComponents() {
+            try {
+                // This grabs the header.html from your repo
+                const headerRes = await fetch('header.html');
+                if(headerRes.ok) document.getElementById('header-placeholder').innerHTML = await headerRes.text();
+
+                const footerRes = await fetch('footer.html');
+                if(footerRes.ok) document.getElementById('footer-placeholder').innerHTML = await footerRes.text();
+            } catch (err) {
+                console.warn('Component loading failed:', err);
+            }
+        }
+        loadComponents();
+    </script>
 
 </body>
 </html>
