@@ -3,17 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TerraDignus | Engineering View</title>
+    <title>TerraDignus | The NestEgg</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://unpkg.com/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
     <script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
     <style>
         :root {
             --primary: #2C3E50;
-            --accent: #E67E22;
-            --bg: #F5F6FA;
-            --text: #2C3E50;
+            --text: #222;
+            --bg: #ffffff;
         }
 
         body {
@@ -21,149 +19,102 @@
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
             background-color: var(--bg);
             color: var(--text);
-            overflow-x: hidden;
+            overflow-x: hidden; /* Prevent horizontal scroll */
         }
 
-        /* Navbar */
+        /* --- REVERTED HEADER STYLE --- */
         nav {
-            padding: 1.5rem 2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: white;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            position: fixed;
+            padding: 2rem 4rem;
+            background: transparent;
+            position: absolute;
             width: 100%;
             top: 0;
-            z-index: 100;
+            z-index: 10;
+            box-sizing: border-box;
         }
 
         .logo {
-            font-weight: 800;
-            letter-spacing: -0.5px;
-            font-size: 1.5rem;
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: -1px;
+            color: var(--primary);
             text-transform: uppercase;
         }
 
-        /* 3D Container */
-        #canvas-container {
-            width: 100%;
-            height: 80vh; /* Occupies 80% of viewport height */
+        /* --- 3D CANVAS & UI --- */
+        #canvas-wrapper {
             position: relative;
-            background: #e0e0e0; /* Neutral engineering gray */
-            margin-top: 80px;
+            width: 100%;
+            height: 90vh; /* Taller view */
+            background: #ffffff;
+            cursor: default;
         }
 
-        /* Annotation Markers (The dots on the model) */
-        .annotation {
-            position: absolute;
-            width: 20px;
-            height: 20px;
-            background: var(--accent);
-            border-radius: 50%;
-            border: 2px solid white;
-            cursor: pointer;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            transition: transform 0.2s;
-            display: none; /* Hidden until positions calculated */
-            z-index: 10;
-        }
-
-        .annotation:hover {
-            transform: scale(1.2);
-        }
-
-        /* Annotation Info Card */
-        .annotation-card {
+        /* Floating Text (No Boxes) */
+        .floating-label {
             position: absolute;
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 2rem;
-            width: 300px;
-            border-radius: 4px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            display: none;
-            z-index: 20;
-            border-left: 5px solid var(--accent);
+            transform: translate(20px, -50%); /* Offset slightly from center */
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            text-align: left;
+            max-width: 300px;
         }
 
-        .annotation-card h3 {
+        .floating-label h2 {
+            font-size: 1.5rem;
             margin: 0 0 0.5rem 0;
-            font-size: 1.2rem;
+            font-weight: 600;
+            color: #000;
         }
 
-        .annotation-card p {
-            font-size: 0.9rem;
-            line-height: 1.5;
-            color: #666;
+        .floating-label p {
+            font-size: 1rem;
+            line-height: 1.4;
+            color: #444;
+            margin: 0;
         }
 
-        .close-btn {
+        /* The dots on the model */
+        .annotation-marker {
             position: absolute;
-            top: 10px;
-            right: 15px;
+            width: 16px;
+            height: 16px;
+            background: transparent; 
+            border: 2px solid #000; /* Engineering style circle */
+            border-radius: 50%;
             cursor: pointer;
-            font-weight: bold;
-            color: #999;
+            z-index: 100;
+            transform: translate(-50%, -50%);
+            transition: transform 0.2s;
         }
 
-        .close-btn:hover {
-            color: var(--accent);
-        }
-
-        /* Content Section */
-        .content-section {
-            padding: 4rem 2rem;
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        .product-header {
-            text-align: center;
-            margin-bottom: 3rem;
-        }
-
-        .product-title {
-            font-size: 3rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .product-subtitle {
-            font-size: 1.2rem;
-            color: #666;
-            font-weight: 300;
+        .annotation-marker:hover {
+            background: #000;
+            transform: translate(-50%, -50%) scale(1.2);
         }
 
         /* Footer */
         footer {
-            background: var(--primary);
-            color: white;
-            padding: 3rem 2rem;
+            background: #fff;
+            color: #444;
+            padding: 4rem 2rem;
             text-align: center;
-            margin-top: 4rem;
+            border-top: 1px solid #eee;
         }
 
         .patent-number {
             font-family: 'Courier New', monospace;
-            font-size: 0.8rem;
-            opacity: 0.7;
-            margin: 0.5rem 0;
+            font-size: 0.75rem;
+            color: #666;
+            margin: 0.4rem 0;
+            text-transform: uppercase;
             letter-spacing: 1px;
-        }
-
-        /* Loading Overlay */
-        #loader {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: #f0f0f0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-family: monospace;
-            z-index: 50;
         }
     </style>
 </head>
@@ -171,33 +122,16 @@
 
     <nav>
         <div class="logo">TerraDignus</div>
-        </nav>
+    </nav>
 
-    <section id="canvas-container">
-        <div id="loader">LOADING SCHEMATICS...</div>
-        </section>
-
-    <div class="annotation-card" id="info-card">
-        <span class="close-btn" onclick="resetCamera()">✕</span>
-        <h3 id="card-title">Feature Title</h3>
-        <p id="card-desc">Description of the engineering feature goes here.</p>
+    <div id="canvas-wrapper">
+        <div id="floating-text" class="floating-label">
+            <h2 id="ft-title"></h2>
+            <p id="ft-desc"></p>
+        </div>
     </div>
 
-    <div class="content-section">
-        <div class="product-header">
-            <h1 class="product-title">The NestEgg</h1>
-            <p class="product-subtitle">Modular Wildlife Habitation System</p>
-        </div>
-        <p>
-            The NestEgg represents a paradigm shift in wildlife support structures. 
-            Utilizing our proprietary In-Situ Monolithic Composite System, it provides 
-            unmatched thermal regulation and durability.
-        </p>
-        </div>
-
     <footer>
-        <p>&copy; 2025 TerraDignus. All Rights Reserved.</p>
-        <br>
         <div id="patent-info">
             <p class="patent-number">USPTO PATENT PENDING: Modular Wildlife Habitation System</p>
             <p class="patent-number">USPTO PATENT PENDING: In-Situ Monolithic Composite System</p>
@@ -206,170 +140,241 @@
     </footer>
 
     <script>
-        // --- 1. SETUP ---
-        const container = document.getElementById('canvas-container');
-        const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0xf0f0f0); // Engineering gray
+        // --- CONFIGURATION ---
+        const sceneConfig = {
+            bg: 0xffffff,
+            lineColor: 0x000000,
+            modelColor: 0xffffff,
+            animSpeed: 1.5 // Speed of zoom
+        };
 
-        // Perspective Camera (Standard View)
-        const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
-        // Initial "Home" position - standard isometric-style view
-        const homePosition = { x: 5, y: 3, z: 5 }; 
-        const homeTarget = { x: 0, y: 0, z: 0 };
+        // --- SETUP ---
+        const container = document.getElementById('canvas-wrapper');
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(sceneConfig.bg);
+
+        const camera = new THREE.PerspectiveCamera(40, container.clientWidth / container.clientHeight, 0.1, 100);
         
-        camera.position.set(homePosition.x, homePosition.y, homePosition.z);
+        // Initial Engineering View (Isometric-ish)
+        const homePos = { x: 8, y: 4, z: 8 }; 
+        const homeTarget = { x: 0, y: 0.5, z: 0 };
+        camera.position.set(homePos.x, homePos.y, homePos.z);
 
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         renderer.setSize(container.clientWidth, container.clientHeight);
-        renderer.shadowMap.enabled = true;
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Sharp lines
         container.appendChild(renderer.domElement);
 
-        // --- 2. LIGHTING ---
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-        scene.add(ambientLight);
-
-        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
-        dirLight.position.set(5, 10, 7);
-        dirLight.castShadow = true;
-        scene.add(dirLight);
-
-        // --- 3. CONTROLS ---
+        // Controls
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
-        controls.dampingFactor = 0.05;
-        
-        // REQUEST UPDATE: Disable Zooming
-        controls.enableZoom = false; 
-        
-        // REQUEST UPDATE: Slower Rotation (default is 1.0)
-        controls.rotateSpeed = 0.3; 
-        
-        // Lock panning to keep the model centered
-        controls.enablePan = false; 
+        controls.enableZoom = false; // DISABLED AS REQUESTED
+        controls.enablePan = false;
+        controls.rotateSpeed = 0.3; // SLOWED DOWN AS REQUESTED
+        controls.autoRotate = true;
+        controls.autoRotateSpeed = 0.5;
 
-        // --- 4. GEOMETRY (Placeholder for NestEgg) ---
-        // Replacing GLTFLoader with simple geometry for demonstration if model not present
-        const geometry = new THREE.CylinderGeometry(1, 1, 2, 32);
-        const material = new THREE.MeshStandardMaterial({ color: 0xE67E22, roughness: 0.7 });
-        const model = new THREE.Mesh(geometry, material);
-        scene.add(model);
+        // Lighting (Flat, technical lighting)
+        const ambLight = new THREE.AmbientLight(0xffffff, 0.9);
+        scene.add(ambLight);
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.3);
+        dirLight.position.set(5, 10, 7);
+        scene.add(dirLight);
 
-        document.getElementById('loader').style.display = 'none';
+        // --- THE NESTEGG MODEL (Procedural Generation) ---
+        // Creating an Egg shape using LatheGeometry to match your drawing profile
+        const points = [];
+        for ( let i = 0; i <= 20; i ++ ) {
+            // Using a sine curve logic to approximate the egg profile (narrow top, wide bottom)
+            const t = i / 20;
+            const y = (t * 4.5) - 2.25; // Height scaling
+            const x = Math.sin(t * Math.PI) * (1.6 - (t * 0.4)); // Width scaling with taper
+            points.push( new THREE.Vector2( x, y ) );
+        }
+        const geometry = new THREE.LatheGeometry( points, 64 );
+        
+        // Material: Matte White + "Sketch" Edges
+        const material = new THREE.MeshBasicMaterial({ 
+            color: 0xffffff,
+            polygonOffset: true,
+            polygonOffsetFactor: 1, 
+            polygonOffsetUnits: 1
+        });
+        const mesh = new THREE.Mesh( geometry, material );
+        scene.add( mesh );
 
-        // --- 5. ANNOTATIONS SYSTEM ---
-        // Data for annotations (Position relative to model center)
+        // Add Wireframe/Edges for Engineering Look
+        const edges = new THREE.EdgesGeometry( geometry, 15 ); // Threshold angle
+        const line = new THREE.LineSegments( edges, new THREE.LineBasicMaterial( { color: 0x000000, linewidth: 2 } ) );
+        scene.add( line );
+
+        // Simulate the HOLE (Label 3) visually with a black circle
+        // We can't easily cut a hole in vanilla ThreeJS w/o CSG, so we place a dark "cap"
+        const holeGeo = new THREE.CircleGeometry(0.5, 32);
+        const holeMat = new THREE.MeshBasicMaterial({ color: 0x222222 });
+        const holeMesh = new THREE.Mesh(holeGeo, holeMat);
+        // Position roughly where Label 3 is
+        holeMesh.position.set(0.9, 0.8, 0.8); 
+        holeMesh.lookAt(2, 1.5, 2); // Angle it towards the surface normal approx
+        scene.add(holeMesh);
+
+
+        // --- ANNOTATIONS SYSTEM ---
+        
+        // Coordinates mapped roughly to your image labels
         const annotations = [
             {
-                id: 1,
-                title: "Thermal Shell",
-                desc: "Double-walled composite structure providing R-20 insulation.",
-                position: new THREE.Vector3(0, 1, 1), // Top rim
-                camPos: { x: 0, y: 2, z: 2.5 } // Zoomed in view for this point
+                id: '21',
+                label: "21",
+                title: "Upper Housing",
+                desc: "Impact-resistant monolithic shell structure.",
+                pos: new THREE.Vector3(0, 2.1, 0), // Top of dome
+                camPos: { x: 0, y: 3, z: 4 }
             },
             {
-                id: 2,
-                title: "Mounting Bracket",
-                desc: "Universal mounting system compatible with standard 4x4 posts.",
-                position: new THREE.Vector3(0, -0.5, 1), // Bottom
-                camPos: { x: 0, y: -1, z: 3 } // Zoomed in view for this point
+                id: '3',
+                label: "3",
+                title: "Ingress Aperture",
+                desc: "Precision-calibrated entry point for target species.",
+                pos: new THREE.Vector3(0.9, 0.8, 0.8), // The Hole location
+                camPos: { x: 2, y: 1, z: 2 }
+            },
+            {
+                id: '4',
+                label: "4",
+                title: "Ventilation Port",
+                desc: "Secondary airflow channel for thermal regulation.",
+                pos: new THREE.Vector3(0.6, 1.5, 1.0), // High up, offset (Small hole)
+                camPos: { x: 1.5, y: 1.8, z: 2.5 }
+            },
+            {
+                id: '17',
+                label: "17",
+                title: "Basal Hemisphere",
+                desc: "Structural foundation with integrated drainage.",
+                pos: new THREE.Vector3(1.2, -1.0, 0), // Bottom curve
+                camPos: { x: 3, y: -1.5, z: 1 }
             }
         ];
 
-        // Create HTML markers
+        // Create DOM Elements for markers
+        const markers = [];
         annotations.forEach(data => {
-            const div = document.createElement('div');
-            div.className = 'annotation';
-            div.id = `anno-${data.id}`;
-            div.addEventListener('click', () => zoomToAnnotation(data));
-            container.appendChild(div);
+            const el = document.createElement('div');
+            el.className = 'annotation-marker';
+            el.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent background click
+                activateAnnotation(data);
+            });
+            container.appendChild(el);
+            markers.push({ el, ...data });
         });
 
-        const infoCard = document.getElementById('info-card');
-        const cardTitle = document.getElementById('card-title');
-        const cardDesc = document.getElementById('card-desc');
+        const textContainer = document.getElementById('floating-text');
+        const titleEl = document.getElementById('ft-title');
+        const descEl = document.getElementById('ft-desc');
+        let isZoomed = false;
 
-        // --- 6. LOGIC ---
+        // --- INTERACTION LOGIC ---
 
-        function zoomToAnnotation(data) {
-            // 1. Update Content
-            cardTitle.innerText = data.title;
-            cardDesc.innerText = data.desc;
-            infoCard.style.display = 'block';
+        function activateAnnotation(data) {
+            isZoomed = true;
+            controls.autoRotate = false; // Stop spinning
 
-            // 2. Animate Camera to "Detail View"
+            // 1. Move Camera
             gsap.to(camera.position, {
-                duration: 1.5,
+                duration: sceneConfig.animSpeed,
                 x: data.camPos.x,
                 y: data.camPos.y,
                 z: data.camPos.z,
                 ease: "power2.inOut"
             });
 
-            // 3. Update Controls Target to focus on the point
+            // 2. Focus Target
             gsap.to(controls.target, {
-                duration: 1.5,
-                x: data.position.x,
-                y: data.position.y,
-                z: data.position.z,
+                duration: sceneConfig.animSpeed,
+                x: data.pos.x,
+                y: data.pos.y,
+                z: data.pos.z,
                 ease: "power2.inOut",
                 onUpdate: () => controls.update()
             });
+
+            // 3. Update & Show Text (Floating, no box)
+            titleEl.innerText = `${data.label}. ${data.title}`;
+            descEl.innerText = data.desc;
+            
+            // Calculate screen position for text offset
+            // We just center it for now, user asked for floating aesthetic
+            // Simple fade in
+            textContainer.style.opacity = 0;
+            setTimeout(() => {
+                textContainer.style.opacity = 1;
+            }, 500);
         }
 
-        window.resetCamera = function() {
-            // 1. Hide Card
-            infoCard.style.display = 'none';
+        // RESET FUNCTION (Background Click)
+        container.addEventListener('click', () => {
+            if (!isZoomed) return;
+            isZoomed = false;
+            controls.autoRotate = true;
 
-            // 2. Animate Camera back to "Home View"
+            // Fade out text
+            textContainer.style.opacity = 0;
+
+            // Reset Camera
             gsap.to(camera.position, {
-                duration: 1.5,
-                x: homePosition.x,
-                y: homePosition.y,
-                z: homePosition.z,
+                duration: sceneConfig.animSpeed,
+                x: homePos.x,
+                y: homePos.y,
+                z: homePos.z,
                 ease: "power2.inOut"
             });
 
-            // 3. Reset Target to center
+            // Reset Target
             gsap.to(controls.target, {
-                duration: 1.5,
+                duration: sceneConfig.animSpeed,
                 x: homeTarget.x,
                 y: homeTarget.y,
                 z: homeTarget.z,
                 ease: "power2.inOut",
                 onUpdate: () => controls.update()
             });
-        }
+        });
 
-        // --- 7. RENDER LOOP ---
+        // --- RENDER LOOP ---
         function animate() {
             requestAnimationFrame(animate);
             controls.update();
 
-            // Update annotation positions based on 3D coordinates
-            annotations.forEach(data => {
-                const vector = data.position.clone();
+            // Sync Marker Positions
+            markers.forEach(m => {
+                // Get 2D screen position
+                const vector = m.pos.clone();
                 vector.project(camera);
 
+                // Convert to CSS coords
                 const x = (vector.x * 0.5 + 0.5) * container.clientWidth;
                 const y = (-(vector.y) * 0.5 + 0.5) * container.clientHeight;
 
-                const el = document.getElementById(`anno-${data.id}`);
-                el.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px)`;
-                
-                // Only show if visible (not behind camera or model)
-                // Simple check: Raycaster logic typically needed here for true occlusion
-                // For simplicity, we just check z < 1
-                if(vector.z < 1) {
-                    el.style.display = 'block';
+                m.el.style.left = `${x}px`;
+                m.el.style.top = `${y}px`;
+
+                // Hide if behind model (simple Z check)
+                // For a proper check we'd use Raycasting, but this saves perf
+                if (vector.z > 0.98) { // Clipping plane roughly
+                    m.el.style.opacity = 0;
+                    m.el.style.pointerEvents = 'none';
                 } else {
-                    el.style.display = 'none';
+                    m.el.style.opacity = 1;
+                    m.el.style.pointerEvents = 'auto';
                 }
             });
 
             renderer.render(scene, camera);
         }
-        
-        // Handle Resize
+
+        // Resize
         window.addEventListener('resize', () => {
             camera.aspect = container.clientWidth / container.clientHeight;
             camera.updateProjectionMatrix();
@@ -377,6 +382,7 @@
         });
 
         animate();
+
     </script>
 </body>
 </html>
