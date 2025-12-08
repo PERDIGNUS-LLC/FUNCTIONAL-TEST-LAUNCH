@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cornell Evaluation Portal | The NestEgg Engineering View</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://unpkg.com/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
+
+    <style>
+        /* --- CORE STYLING --- */
+        body { margin: 0; overflow: hidden; background-color: #ffffff; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
+        
+        #engineering-canvas {
+            width: 100vw;
+            height: 100vh;
+            display: block;
+            outline: none;
+            cursor: grab;
+        }
+        #engineering-canvas:active { cursor: grabbing; }
+
+        /* --- LOADER --- */
+        #loader {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 14px;
+            color: #2c3e50;
+            letter-spacing: 2px;
+            font-weight: bold;
+            pointer-events: none;
+            transition: opacity 0.5s;
+            background: rgba(255,255,255,0.8);
+            padding: 20px;
+            border-radius: 4px;
+        }
+
+        /* --- ANNOTATION MARKERS (The Orbs) --- */
+        .annotation-marker {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            display: none; /* Hidden until model loads */
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .orb-graphic {
+            width: 100%;
+            height: 100%;
+            background: rgba(44, 62, 80, 0.9); /* Dark Blue/Black */
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            box-shadow: 0 0 15px rgba(44, 62, 80, 0.5);
+            transition: all 0.3s ease;
+            animation: pulse 2s infinite;
+        }
+
+        .annotation-marker:hover .orb-graphic {
+            background: #e67e22; /* Brand Orange */
+            transform: scale(1.4);
+            box-shadow: 0 0 25px rgba(230, 126, 34, 0.8);
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(44, 62, 80, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(44, 62, 80, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(44, 62, 80, 0); }
+        }
+
+        /* --- INFO CARD (Expands on Click) --- */
+        .info-card {
+            position: absolute;
+            top: 20%;
+            right: 5%;
+            width: 320px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 25px;
+            border-left: 5px solid #e67e22;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+            opacity: 0;
+            pointer-events: none;
+            transform: translateX(50px);
+            transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+            border-radius: 0 8px 8px 0;
+        }
+
+        .info-card.active {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateX(0);
+        }
+
+        .info-card h2 {
+            margin: 0 0 10px 0;
+            font-size: 20px;
+            color: #2c3e50;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 800;
+        }
+
+        .info-card p {
+            margin: 0 0 20px 0;
+            font-size: 15px;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .close-btn {
+            background: #2c3e50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .close-btn:hover { background: #e67e22; }
+        
+        /* Debug Info */
+        #debug-info {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            font-family: monospace;
+            font-size: 10px;
+            color: #ccc;
+            pointer-events: none;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="loader">INITIALIZING ENGINEERING MODEL...</div>
+
+    <div id="engineering-canvas"></div>
+
+    <div class="info-card" id="infoPanel">
+        <h2 id="featureTitle">Feature Name</h2>
+        <p id="featureDesc">Description text goes here.</p>
+        <button class="close-btn" onclick="resetView()">Return to Overview</button>
+    </div>
+    
+    <div id="debug-info">Console Active: Click model to log coordinates</div>
+
+    <script>
+        // ==========================================
+        // 1. CONFIGURATION
+        // ==========================================
+        const MODEL_PATH = 'assets/NestEggFBCR.glb'; 
+        const BG_COLOR = 0xffffff;
+
+        // --- MODEL SCALING ---
+        // Since coords are in INCHES, we may need to scale the model or coords.
+        // Option A: If model is in meters, scale it up by 39.37 to match inches.
+        // Option B: If model is in inches, keep scale 1.
+        // TRY 1.0 FIRST. If model is tiny, change to 39.37
+        const GLOBAL_SCALE = 1.0; 
+
+        // --- ANNOTATION DATA (HOTSPOTS) ---
+        // Coordinates provided in Inches (X, Y, Z)
+        const annotations = [
+            {
+                id: 1,
+                title: "1. Entrance Aperture",
+                desc: "Primary biological ingress point, dimensioned specifically for target avian species to exclude larger predators.",
+                // PROVIDED: 2.509, 0.00, 3.672
+                position: new THREE.Vector3(2.509, 0.00, 3.672), 
+                cameraTarget: { x: 2.509, y: 0.00, z: 3.672 },
+                cameraPos: { x: 8, y: 2, z: 8 } 
+            },
+            {
+                id: 2,
+                title: "2. Ventilation Aperture (Left)",
+                desc: "Lateral airflow intake designed to promote the stack effect and regulate internal cavity temperature.",
+                // PROVIDED: 0.0, -2.149, 3.849
+                position: new THREE.Vector3(0.0, -2.149, 3.849),
+                cameraTarget: { x: 0.0, y: -2.149, z: 3.849 },
+                cameraPos: { x: 0.0, y: -5.0, z: 8.0 }
+            },
+            {
+                id: 3,
+                title: "3. Rear Mounting Interface",
+                desc: "Universal mounting plane compatible with standard bracketry for rapid field deployment.",
+                // PROVIDED: -0.877, 0.036, -3.951
+                position: new THREE.Vector3(-0.877, 0.036, -3.951),
+                cameraTarget: { x: -0.877, y: 0.036, z: -3.951 },
+                cameraPos: { x: -6.0, y: 1.0, z: -8.0 }
+            },
+            {
+                id: 4,
+                title: "4. Drainage Aperture",
+                desc: "Base-integrated geometry ensuring moisture egress and pathogen control.",
+                // PROVIDED: -0.003, 0.036, -0.419
+                position: new THREE.Vector3(-0.003, 0.036, -0.419),
+                cameraTarget: { x: -0.003, y: 0.036, z: -0.419 },
+                cameraPos: { x: 0, y: 2.0, z: 4.0 }
+            }
+        ];
+
+        // ==========================================
+        // 2. SCENE SETUP
+        // ==========================================
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(BG_COLOR);
+        scene.fog = new THREE.Fog(BG_COLOR, 15, 50);
+
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(10, 5, 10); // Start further back assuming inches scale
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        renderer.outputEncoding = THREE.sRGBEncoding;
+        renderer.physicallyCorrectLights = true;
+        document.getElementById('engineering-canvas').appendChild(renderer.domElement);
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.enablePan = false;
+        controls.minDistance = 5;
+        controls.maxDistance = 50;
+
+        // ==========================================
+        // 3. LIGHTING (Studio Setup)
+        // ==========================================
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+        scene.add(ambientLight);
+
+        const mainLight = new THREE.DirectionalLight(0xffffff, 1.2);
+        mainLight.position.set(10, 15, 10);
+        mainLight.castShadow = true;
+        // Increase shadow map size for engineering precision
+        mainLight.shadow.mapSize.width = 2048;
+        mainLight.shadow.mapSize.height = 2048;
+        scene.add(mainLight);
+
+        const fillLight = new THREE.DirectionalLight(0xe67e22, 0.6); // Warm orange rim light
+        fillLight.position.set(-10, 0, -10);
+        scene.add(fillLight);
+
+        // ==========================================
+        // 4. LOAD THE MODEL
+        // ==========================================
+        const loader = new THREE.GLTFLoader();
+        let model = null;
+
+        loader.load(MODEL_PATH, function (gltf) {
+            model = gltf.scene;
+            
+            // APPLY GLOBAL SCALE (Useful if inches vs meters mismatch)
+            model.scale.set(GLOBAL_SCALE, GLOBAL_SCALE, GLOBAL_SCALE);
+            
+            // Center the model
+            const box = new THREE.Box3().setFromObject(model);
+            const center = box.getCenter(new THREE.Vector3());
+            model.position.sub(center); 
+            
+            model.traverse((node) => {
+                if (node.isMesh) {
+                    node.castShadow = true;
+                    node.receiveShadow = true;
+                }
+            });
+
+            scene.add(model);
+            
+            // Add a shadow floor
+            const shadowPlane = new THREE.Mesh(
+                new THREE.PlaneGeometry(100, 100), // Larger floor for inch scale
+                new THREE.ShadowMaterial({ opacity: 0.1 })
+            );
+            shadowPlane.rotation.x = -Math.PI / 2;
+            shadowPlane.position.y = box.min.y - 0.5; 
+            shadowPlane.receiveShadow = true;
+            scene.add(shadowPlane);
+
+            // Hide Loader
+            document.getElementById('loader').style.opacity = 0;
+            setTimeout(() => { document.getElementById('loader').style.display = 'none'; }, 500);
+            
+            // Create the HTML Markers
+            createMarkers();
+
+        }, undefined, function (error) {
+            console.error(error);
+            document.getElementById('loader').innerText = "ERROR LOADING MODEL. Check Console (F12).";
+        });
+
+        // ==========================================
+        // 5. MARKER SYSTEM
+        // ==========================================
+        function createMarkers() {
+            annotations.forEach(data => {
+                const div = document.createElement('div');
+                div.className = 'annotation-marker';
+                const graphic = document.createElement('div');
+                graphic.className = 'orb-graphic';
+                div.appendChild(graphic);
+
+                div.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    zoomToFeature(data);
+                });
+                
+                document.body.appendChild(div);
+                data.element = div;
+            });
+        }
+
+        function updateMarkers() {
+            if (!model) return;
+
+            annotations.forEach(ann => {
+                // If coordinates are relative to model center, we apply model matrix
+                // BUT your coordinates look like raw CAD world coords. 
+                // Since we centered the model at (0,0,0), these coords *should* lineup 
+                // IF the origin in CAD was the center.
+                // If not, we might need to offset them.
+                
+                const screenPos = ann.position.clone();
+                
+                // Optional: Apply model rotation if markers should stick to surface
+                screenPos.applyMatrix4(model.matrixWorld);
+                
+                screenPos.project(camera);
+
+                const x = (screenPos.x * 0.5 + 0.5) * window.innerWidth;
+                const y = (-(screenPos.y * 0.5) + 0.5) * window.innerHeight;
+
+                ann.element.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px)`;
+                
+                // Simple Occlusion Check
+                const isVisible = (screenPos.z < 0.99); 
+                ann.element.style.display = isVisible ? 'block' : 'none';
+            });
+        }
+
+        // ==========================================
+        // 6. INTERACTION LOGIC (GSAP)
+        // ==========================================
+        let isZoomed = false;
+
+        function zoomToFeature(data) {
+            isZoomed = true;
+
+            // Move Camera
+            gsap.to(camera.position, {
+                duration: 1.5,
+                x: data.cameraPos.x,
+                y: data.cameraPos.y,
+                z: data.cameraPos.z,
+                ease: "power2.inOut"
+            });
+
+            // Move Target
+            gsap.to(controls.target, {
+                duration: 1.5,
+                x: data.cameraTarget.x,
+                y: data.cameraTarget.y,
+                z: data.cameraTarget.z,
+                ease: "power2.inOut",
+                onUpdate: () => controls.update()
+            });
+
+            // Show UI
+            document.getElementById('featureTitle').innerText = data.title;
+            document.getElementById('featureDesc').innerText = data.desc;
+            document.getElementById('infoPanel').classList.add('active');
+
+            // Hide markers
+            annotations.forEach(ann => ann.element.style.opacity = '0');
+        }
+
+        window.resetView = function() {
+            isZoomed = false;
+
+            // Reset Camera
+            gsap.to(camera.position, {
+                duration: 1.2,
+                x: 10,
+                y: 5,
+                z: 10,
+                ease: "power2.inOut"
+            });
+
+            // Reset Target
+            gsap.to(controls.target, {
+                duration: 1.2,
+                x: 0,
+                y: 0,
+                z: 0,
+                ease: "power2.inOut",
+                onUpdate: () => controls.update()
+            });
+
+            document.getElementById('infoPanel').classList.remove('active');
+            annotations.forEach(ann => ann.element.style.opacity = '1');
+        }
+
+        // ==========================================
+        // 7. CLICK LOGGER (HELPER)
+        // ==========================================
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+
+        window.addEventListener('pointerdown', (event) => {
+            if(isZoomed) return; 
+            
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, camera);
+            
+            if(model) {
+                const intersects = raycaster.intersectObjects(model.children, true);
+                if (intersects.length > 0) {
+                    const point = intersects[0].point;
+                    // Log the world coordinate of the click
+                    // Since model is at 0,0,0, this is the local coordinate
+                    console.log(`%c CLICK COORD: ${point.x.toFixed(3)}, ${point.y.toFixed(3)}, ${point.z.toFixed(3)}`, 'background: #222; color: #bada55');
+                }
+            }
+        });
+
+        // ==========================================
+        // 8. ANIMATION LOOP
+        // ==========================================
+        const clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const time = clock.getElapsedTime();
+
+            if (model && !isZoomed) {
+                // Gentle Levitation
+                model.position.y = Math.sin(time * 0.5) * 0.1;
+                // Slow Rotation
+                model.rotation.y += 0.001; 
+            }
+
+            controls.update();
+            renderer.render(scene, camera);
+            updateMarkers();
+        }
+
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+    </script>
+</body>
+</html>
