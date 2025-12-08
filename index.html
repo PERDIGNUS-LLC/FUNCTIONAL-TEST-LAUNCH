@@ -3,378 +3,419 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TerraDignus | The NestEgg</title>
+    <title>TerraDignus | Engineering Detail</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
     <style>
-        :root {
-            --primary: #2C3E50;
-            --text: #222;
-            --bg: #ffffff;
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Playfair+Display:wght@400;600&display=swap');
 
         body {
             margin: 0;
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            overflow-x: hidden; /* Prevent horizontal scroll */
+            background-color: #ffffff;
+            font-family: 'Roboto', sans-serif;
+            overflow-x: hidden;
+            color: #333;
         }
 
-        /* --- REVERTED HEADER STYLE --- */
-        nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 2rem 4rem;
-            background: transparent;
+        /* --- HEADER (MATCHING VIDEO) --- */
+        header {
             position: absolute;
-            width: 100%;
-            top: 0;
+            top: 40px;
+            left: 40px;
             z-index: 10;
-            box-sizing: border-box;
         }
 
-        .logo {
-            font-size: 1.8rem;
+        .brand-name {
+            font-family: 'Roboto', sans-serif;
             font-weight: 700;
-            letter-spacing: -1px;
-            color: var(--primary);
+            font-size: 24px;
+            color: #2C3E50; /* Dark Slate Blue/Grey */
             text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
-        /* --- 3D CANVAS & UI --- */
-        #canvas-wrapper {
+        /* --- MAIN CONTENT --- */
+        #viewport {
             position: relative;
             width: 100%;
-            height: 90vh; /* Taller view */
+            height: 85vh;
             background: #ffffff;
-            cursor: default;
+            overflow: hidden;
         }
 
-        /* Floating Text (No Boxes) */
-        .floating-label {
+        /* SVG Overlay for Engineering Lines */
+        #ui-layer {
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(20px, -50%); /* Offset slightly from center */
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.5s ease;
-            text-align: left;
-            max-width: 300px;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* Let clicks pass through to 3D canvas */
+            z-index: 5;
         }
 
-        .floating-label h2 {
-            font-size: 1.5rem;
-            margin: 0 0 0.5rem 0;
-            font-weight: 600;
-            color: #000;
-        }
-
-        .floating-label p {
-            font-size: 1rem;
-            line-height: 1.4;
-            color: #444;
-            margin: 0;
-        }
-
-        /* The dots on the model */
-        .annotation-marker {
+        /* Hotspots (Clickable dots) */
+        .hotspot {
             position: absolute;
-            width: 16px;
-            height: 16px;
-            background: transparent; 
-            border: 2px solid #000; /* Engineering style circle */
+            width: 20px;
+            height: 20px;
             border-radius: 50%;
+            border: 2px solid #333; /* Engineering style ring */
             cursor: pointer;
-            z-index: 100;
+            z-index: 10;
             transform: translate(-50%, -50%);
-            transition: transform 0.2s;
+            transition: transform 0.2s, background-color 0.2s;
         }
 
-        .annotation-marker:hover {
-            background: #000;
-            transform: translate(-50%, -50%) scale(1.2);
+        .hotspot:hover {
+            transform: translate(-50%, -50%) scale(1.3);
+            background-color: rgba(0,0,0,0.1);
         }
 
-        /* Footer */
+        /* Labels (Hidden by default) */
+        .label-text {
+            position: absolute;
+            font-family: 'Times New Roman', serif; /* Engineering drawing font style */
+            font-size: 18px;
+            color: #000;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.5s;
+            pointer-events: none;
+            z-index: 10;
+            text-decoration: underline;
+            text-underline-offset: 4px;
+        }
+
+        /* --- FOOTER (MATCHING SCREENSHOT) --- */
         footer {
-            background: #fff;
-            color: #444;
-            padding: 4rem 2rem;
-            text-align: center;
-            border-top: 1px solid #eee;
+            width: 100%;
         }
 
-        .patent-number {
+        /* Top Footer Section (Grey) */
+        .footer-ip {
+            background-color: #EBEBEB; /* Light Grey */
+            padding: 60px 20px;
+            text-align: center;
+            color: #1a1a1a;
+        }
+
+        .footer-ip h3 {
+            font-size: 22px;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        .footer-ip p {
+            font-size: 16px;
+            margin: 5px 0;
+            line-height: 1.5;
+        }
+
+        .patent-list {
+            margin-top: 30px;
             font-family: 'Courier New', monospace;
-            font-size: 0.75rem;
-            color: #666;
-            margin: 0.4rem 0;
+            font-size: 14px;
+            color: #2F4F4F; /* Dark Slate Greenish hue from image */
+        }
+
+        .patent-item {
+            margin: 8px 0;
+            letter-spacing: 0.5px;
+        }
+
+        /* Bottom Footer Section (Black) */
+        .footer-brand {
+            background-color: #080808; /* Near Black */
+            color: #ffffff;
+            padding: 60px 20px;
+            text-align: center;
+        }
+
+        .company-name {
+            font-size: 20px;
+            font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 1px;
+            margin-bottom: 15px;
         }
+
+        .sub-brand {
+            font-family: 'Playfair Display', serif;
+            font-size: 18px;
+            color: #ccc;
+            margin-bottom: 30px;
+        }
+
+        .copyright {
+            font-size: 12px;
+            color: #666;
+            margin-top: 20px;
+        }
+
     </style>
 </head>
 <body>
 
-    <nav>
-        <div class="logo">TerraDignus</div>
-    </nav>
+    <header>
+        <div class="brand-name">TerraDignus</div>
+    </header>
 
-    <div id="canvas-wrapper">
-        <div id="floating-text" class="floating-label">
-            <h2 id="ft-title"></h2>
-            <p id="ft-desc"></p>
-        </div>
+    <div id="viewport">
+        <svg id="ui-layer">
+            <polyline id="connector-line" points="" style="fill:none;stroke:black;stroke-width:2;opacity:0;transition:opacity 0.5s" />
+        </svg>
+        
+        <div id="active-label" class="label-text">Detailed Description</div>
     </div>
 
     <footer>
-        <div id="patent-info">
-            <p class="patent-number">USPTO PATENT PENDING: Modular Wildlife Habitation System</p>
-            <p class="patent-number">USPTO PATENT PENDING: In-Situ Monolithic Composite System</p>
-            <p class="patent-number">USPTO PATENT PENDING: Variable-Volume Wildlife Habitation System</p>
+        <div class="footer-ip">
+            <h3>Intellectual Property Portfolio</h3>
+            <p>Our technology is protected by pending United States Patents.</p>
+            
+            <div class="patent-list">
+                <div class="patent-item">USPTO PATENT PENDING: Modular Wildlife Habitation System</div>
+                <div class="patent-item">USPTO PATENT PENDING: In-Situ Monolithic Composite System</div>
+                <div class="patent-item">USPTO PATENT PENDING: Variable-Volume Wildlife Habitation System</div>
+            </div>
+        </div>
+
+        <div class="footer-brand">
+            <div class="company-name">PERDIGNUS LLC</div>
+            <div class="sub-brand">TerraDignus™ | NecTerra</div>
+            <div class="copyright">© MMXXV Nicholas J. Law. All Rights Reserved.</div>
         </div>
     </footer>
 
     <script>
-        // --- CONFIGURATION ---
-        const sceneConfig = {
-            bg: 0xffffff,
-            lineColor: 0x000000,
-            modelColor: 0xffffff,
-            animSpeed: 1.5 // Speed of zoom
-        };
-
-        // --- SETUP ---
-        const container = document.getElementById('canvas-wrapper');
+        // --- SCENE SETUP ---
+        const container = document.getElementById('viewport');
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(sceneConfig.bg);
+        scene.background = new THREE.Color(0xffffff);
 
-        const camera = new THREE.PerspectiveCamera(40, container.clientWidth / container.clientHeight, 0.1, 100);
-        
-        // Initial Engineering View (Isometric-ish)
-        const homePos = { x: 8, y: 4, z: 8 }; 
-        const homeTarget = { x: 0, y: 0.5, z: 0 };
-        camera.position.set(homePos.x, homePos.y, homePos.z);
+        const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
+        const initialCamPos = { x: 0, y: 0, z: 9 }; // Front view initially
+        camera.position.set(initialCamPos.x, initialCamPos.y, initialCamPos.z);
 
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         renderer.setSize(container.clientWidth, container.clientHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Sharp lines
+        renderer.setPixelRatio(window.devicePixelRatio);
+        // Enable shadows for that realistic look
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         container.appendChild(renderer.domElement);
 
-        // Controls
+        // --- LIGHTING (Studio Setup for "Clay" Look) ---
+        const ambLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambLight);
+
+        const mainLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        mainLight.position.set(5, 5, 5);
+        mainLight.castShadow = true;
+        mainLight.shadow.mapSize.width = 1024;
+        mainLight.shadow.mapSize.height = 1024;
+        scene.add(mainLight);
+
+        const fillLight = new THREE.DirectionalLight(0xffecd2, 0.4); // Warm fill
+        fillLight.position.set(-5, 0, 5);
+        scene.add(fillLight);
+
+        // --- CONTROLS ---
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
         controls.enableZoom = false; // DISABLED AS REQUESTED
         controls.enablePan = false;
-        controls.rotateSpeed = 0.3; // SLOWED DOWN AS REQUESTED
-        controls.autoRotate = true;
-        controls.autoRotateSpeed = 0.5;
-
-        // Lighting (Flat, technical lighting)
-        const ambLight = new THREE.AmbientLight(0xffffff, 0.9);
-        scene.add(ambLight);
-        const dirLight = new THREE.DirectionalLight(0xffffff, 0.3);
-        dirLight.position.set(5, 10, 7);
-        scene.add(dirLight);
-
-        // --- THE NESTEGG MODEL (Procedural Generation) ---
-        // Creating an Egg shape using LatheGeometry to match your drawing profile
+        controls.rotateSpeed = 0.3; // SLOW ROTATION
+        
+        // --- MODEL (The Egg) ---
+        // Creating a shape that matches the screenshot (wider bottom, tapered top)
         const points = [];
-        for ( let i = 0; i <= 20; i ++ ) {
-            // Using a sine curve logic to approximate the egg profile (narrow top, wide bottom)
-            const t = i / 20;
-            const y = (t * 4.5) - 2.25; // Height scaling
-            const x = Math.sin(t * Math.PI) * (1.6 - (t * 0.4)); // Width scaling with taper
-            points.push( new THREE.Vector2( x, y ) );
+        for (let i = 0; i <= 30; i++) {
+            const t = i / 30;
+            // Custom egg curve formula
+            const y = (t * 4) - 2; 
+            const x = Math.sin(t * Math.PI) * (1.5 - (t * 0.3)); 
+            points.push(new THREE.Vector2(x, y));
         }
-        const geometry = new THREE.LatheGeometry( points, 64 );
         
-        // Material: Matte White + "Sketch" Edges
-        const material = new THREE.MeshBasicMaterial({ 
-            color: 0xffffff,
-            polygonOffset: true,
-            polygonOffsetFactor: 1, 
-            polygonOffsetUnits: 1
+        const geo = new THREE.LatheGeometry(points, 64);
+        
+        // Material: Clay/Beige (Matching image_032f9b.jpg)
+        const mat = new THREE.MeshStandardMaterial({
+            color: 0xC6B89D, // Beige/Tan
+            roughness: 0.7,  // Matte finish
+            metalness: 0.1
         });
-        const mesh = new THREE.Mesh( geometry, material );
-        scene.add( mesh );
 
-        // Add Wireframe/Edges for Engineering Look
-        const edges = new THREE.EdgesGeometry( geometry, 15 ); // Threshold angle
-        const line = new THREE.LineSegments( edges, new THREE.LineBasicMaterial( { color: 0x000000, linewidth: 2 } ) );
-        scene.add( line );
+        const egg = new THREE.Mesh(geo, mat);
+        egg.castShadow = true;
+        egg.receiveShadow = true;
+        scene.add(egg);
 
-        // Simulate the HOLE (Label 3) visually with a black circle
-        // We can't easily cut a hole in vanilla ThreeJS w/o CSG, so we place a dark "cap"
+        // --- THE ENTRY HOLE (Visual Trickery) ---
+        // Placing a dark circle to simulate the hole shown in drawing/render label '3'
         const holeGeo = new THREE.CircleGeometry(0.5, 32);
-        const holeMat = new THREE.MeshBasicMaterial({ color: 0x222222 });
-        const holeMesh = new THREE.Mesh(holeGeo, holeMat);
-        // Position roughly where Label 3 is
-        holeMesh.position.set(0.9, 0.8, 0.8); 
-        holeMesh.lookAt(2, 1.5, 2); // Angle it towards the surface normal approx
-        scene.add(holeMesh);
+        const holeMat = new THREE.MeshBasicMaterial({ color: 0x2b2b2b }); // Dark Grey/Black
+        const hole = new THREE.Mesh(holeGeo, holeMat);
+        // Positioned based on label 3 in your drawing (mid-upper left)
+        hole.position.set(-0.95, 0.5, 1.0); 
+        hole.lookAt(-2, 0.8, 3); // Angle it slightly
+        egg.add(hole);
 
-
-        // --- ANNOTATIONS SYSTEM ---
-        
-        // Coordinates mapped roughly to your image labels
+        // --- ANNOTATION DATA ---
+        // Positions based on your 2D drawing (image_033f9a.png)
         const annotations = [
             {
-                id: '21',
-                label: "21",
-                title: "Upper Housing",
-                desc: "Impact-resistant monolithic shell structure.",
-                pos: new THREE.Vector3(0, 2.1, 0), // Top of dome
-                camPos: { x: 0, y: 3, z: 4 }
+                id: 1,
+                label: "Ventilation Aperture",
+                pos: new THREE.Vector3(0.6, 1.2, 1.0), // Label 4
+                camPos: { x: 3, y: 1.5, z: 3 }, // Zoom angle
+                lineDir: "right" // Draw line to the right
             },
             {
-                id: '3',
-                label: "3",
-                title: "Ingress Aperture",
-                desc: "Precision-calibrated entry point for target species.",
-                pos: new THREE.Vector3(0.9, 0.8, 0.8), // The Hole location
-                camPos: { x: 2, y: 1, z: 2 }
+                id: 2,
+                label: "Ingress Aperture",
+                pos: new THREE.Vector3(-0.8, 0.5, 1.1), // Label 3
+                camPos: { x: -3, y: 0.5, z: 3 },
+                lineDir: "left"
             },
             {
-                id: '4',
-                label: "4",
-                title: "Ventilation Port",
-                desc: "Secondary airflow channel for thermal regulation.",
-                pos: new THREE.Vector3(0.6, 1.5, 1.0), // High up, offset (Small hole)
-                camPos: { x: 1.5, y: 1.8, z: 2.5 }
-            },
-            {
-                id: '17',
-                label: "17",
-                title: "Basal Hemisphere",
-                desc: "Structural foundation with integrated drainage.",
-                pos: new THREE.Vector3(1.2, -1.0, 0), // Bottom curve
-                camPos: { x: 3, y: -1.5, z: 1 }
+                id: 3,
+                label: "Basal Hemisphere",
+                pos: new THREE.Vector3(1.1, -1.0, 0.5), // Label 17
+                camPos: { x: 3, y: -1, z: 4 },
+                lineDir: "right"
             }
         ];
 
-        // Create DOM Elements for markers
-        const markers = [];
+        // --- UI LOGIC ---
+        const uiLayer = document.getElementById('ui-layer');
+        const connectorLine = document.getElementById('connector-line');
+        const labelDiv = document.getElementById('active-label');
+        let activeAnnotation = null;
+
+        // Create Hotspots
         annotations.forEach(data => {
-            const el = document.createElement('div');
-            el.className = 'annotation-marker';
-            el.addEventListener('click', (e) => {
-                e.stopPropagation(); // Prevent background click
-                activateAnnotation(data);
+            const div = document.createElement('div');
+            div.className = 'hotspot';
+            div.dataset.id = data.id;
+            div.addEventListener('click', (e) => {
+                e.stopPropagation();
+                zoomTo(data);
             });
-            container.appendChild(el);
-            markers.push({ el, ...data });
+            container.appendChild(div);
+            data.element = div; // Store reference
         });
 
-        const textContainer = document.getElementById('floating-text');
-        const titleEl = document.getElementById('ft-title');
-        const descEl = document.getElementById('ft-desc');
-        let isZoomed = false;
-
-        // --- INTERACTION LOGIC ---
-
-        function activateAnnotation(data) {
-            isZoomed = true;
-            controls.autoRotate = false; // Stop spinning
-
-            // 1. Move Camera
+        function zoomTo(data) {
+            activeAnnotation = data;
+            
+            // 1. Animate Camera
             gsap.to(camera.position, {
-                duration: sceneConfig.animSpeed,
+                duration: 1.5,
                 x: data.camPos.x,
                 y: data.camPos.y,
                 z: data.camPos.z,
                 ease: "power2.inOut"
             });
-
-            // 2. Focus Target
-            gsap.to(controls.target, {
-                duration: sceneConfig.animSpeed,
-                x: data.pos.x,
-                y: data.pos.y,
-                z: data.pos.z,
-                ease: "power2.inOut",
-                onUpdate: () => controls.update()
-            });
-
-            // 3. Update & Show Text (Floating, no box)
-            titleEl.innerText = `${data.label}. ${data.title}`;
-            descEl.innerText = data.desc;
             
-            // Calculate screen position for text offset
-            // We just center it for now, user asked for floating aesthetic
-            // Simple fade in
-            textContainer.style.opacity = 0;
+            // 2. Show UI Elements after delay
             setTimeout(() => {
-                textContainer.style.opacity = 1;
-            }, 500);
+                labelDiv.innerText = data.label;
+                labelDiv.style.opacity = 1;
+                connectorLine.style.opacity = 1;
+            }, 1000);
         }
 
-        // RESET FUNCTION (Background Click)
-        container.addEventListener('click', () => {
-            if (!isZoomed) return;
-            isZoomed = false;
-            controls.autoRotate = true;
+        function resetView() {
+            if(!activeAnnotation) return;
+            activeAnnotation = null;
 
-            // Fade out text
-            textContainer.style.opacity = 0;
+            // Hide UI
+            labelDiv.style.opacity = 0;
+            connectorLine.style.opacity = 0;
 
             // Reset Camera
             gsap.to(camera.position, {
-                duration: sceneConfig.animSpeed,
-                x: homePos.x,
-                y: homePos.y,
-                z: homePos.z,
+                duration: 1.5,
+                x: initialCamPos.x,
+                y: initialCamPos.y,
+                z: initialCamPos.z,
                 ease: "power2.inOut"
             });
+        }
 
-            // Reset Target
-            gsap.to(controls.target, {
-                duration: sceneConfig.animSpeed,
-                x: homeTarget.x,
-                y: homeTarget.y,
-                z: homeTarget.z,
-                ease: "power2.inOut",
-                onUpdate: () => controls.update()
-            });
-        });
+        // Global Click to Reset
+        container.addEventListener('click', resetView);
 
-        // --- RENDER LOOP ---
+        // --- UPDATE LOOP ---
         function animate() {
             requestAnimationFrame(animate);
             controls.update();
+            renderer.render(scene, camera);
 
-            // Sync Marker Positions
-            markers.forEach(m => {
-                // Get 2D screen position
-                const vector = m.pos.clone();
-                vector.project(camera);
-
-                // Convert to CSS coords
-                const x = (vector.x * 0.5 + 0.5) * container.clientWidth;
-                const y = (-(vector.y) * 0.5 + 0.5) * container.clientHeight;
-
-                m.el.style.left = `${x}px`;
-                m.el.style.top = `${y}px`;
-
-                // Hide if behind model (simple Z check)
-                // For a proper check we'd use Raycasting, but this saves perf
-                if (vector.z > 0.98) { // Clipping plane roughly
-                    m.el.style.opacity = 0;
-                    m.el.style.pointerEvents = 'none';
+            // Update Hotspot Positions
+            annotations.forEach(data => {
+                const screenPos = getScreenPos(data.pos);
+                
+                // Hide if behind model
+                if(screenPos.z > 1) {
+                    data.element.style.display = 'none';
                 } else {
-                    m.el.style.opacity = 1;
-                    m.el.style.pointerEvents = 'auto';
+                    data.element.style.display = 'block';
+                    data.element.style.left = screenPos.x + 'px';
+                    data.element.style.top = screenPos.y + 'px';
                 }
             });
 
-            renderer.render(scene, camera);
+            // Draw Engineering Line if active
+            if (activeAnnotation && connectorLine.style.opacity > 0) {
+                drawConnector(activeAnnotation);
+            }
         }
 
-        // Resize
+        function getScreenPos(vector3) {
+            const v = vector3.clone();
+            v.project(camera);
+            const x = (v.x * 0.5 + 0.5) * container.clientWidth;
+            const y = (-(v.y) * 0.5 + 0.5) * container.clientHeight;
+            return { x, y, z: v.z };
+        }
+
+        function drawConnector(data) {
+            const start = getScreenPos(data.pos);
+            
+            // Define engineering line shape: Start -> Up/Out -> Elbow -> Text
+            // Hardcoded "Elbow" offsets for that technical look
+            const elbowX = data.lineDir === "right" ? start.x + 50 : start.x - 50;
+            const elbowY = start.y - 50;
+            const endX = data.lineDir === "right" ? elbowX + 100 : elbowX - 100;
+            
+            // Update SVG Line
+            // Points: Start -> Elbow -> End
+            const pointsString = `${start.x},${start.y} ${elbowX},${start.y} ${elbowX},${elbowY} ${endX},${elbowY}`;
+            
+            // Use simple 2-point line for cleaner look if preferred, but doing 3-point for "Tech" feel
+            // Let's match the screenshot style: Straight line out, then horizontal text
+            // Screenshot shows: Dot -> Straight Line -> Text
+            const textPad = 10;
+            
+            // Screenshot logic: Horizontal line to text
+            const lineEndX = data.lineDir === "right" ? start.x + 100 : start.x - 100;
+            const lineEndY = start.y; // Straight horizontal
+            
+            // Let's do the "Elbow" shown in drawing: Up and Over
+            connectorLine.setAttribute('points', `${start.x},${start.y} ${elbowX},${start.y} ${elbowX},${elbowY} ${endX},${elbowY}`);
+
+            // Position Label at end of line
+            labelDiv.style.left = (data.lineDir === "right" ? endX + textPad : endX - labelDiv.offsetWidth - textPad) + 'px';
+            labelDiv.style.top = (elbowY - 10) + 'px'; // Sits on top of the line
+        }
+
+        // Handle Resize
         window.addEventListener('resize', () => {
             camera.aspect = container.clientWidth / container.clientHeight;
             camera.updateProjectionMatrix();
@@ -382,7 +423,6 @@
         });
 
         animate();
-
     </script>
 </body>
 </html>
