@@ -3,257 +3,189 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NestEgg Component</title>
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://unpkg.com/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-    <script src="https://unpkg.com/three@0.128.0/examples/js/loaders/DRACOLoader.js"></script>
-    <script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
-
+    <title>TerraDignus | Advanced Wildlife Habitation</title>
     <style>
-        /* Transparent background to blend with your #F4F4F0 site */
-        body { margin: 0; overflow: hidden; background: transparent; font-family: 'Helvetica Neue', Arial, sans-serif; }
-        #canvas-container { width: 100%; height: 100vh; display: block; }
-
-        /* LOADING INDICATOR */
-        #loader {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: rgba(255,255,255,0.9); padding: 15px 25px; border-radius: 4px;
-            font-size: 12px; font-weight: bold; letter-spacing: 1px; color: #1A4D3E; /* Brand Green */
-            pointer-events: none; transition: opacity 0.5s;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        /* --- RESET & VARIABLES --- */
+        :root {
+            --forest-green: #1A4D3E;
+            --clay: #8D7F73;
+            --off-white: #F4F4F0;
+            --black: #111;
+            --grey: #b3b3b3ff;
         }
-
-        /* ANNOTATION ORBS */
-        .annotation-marker {
-            position: absolute; width: 18px; height: 18px; cursor: pointer; z-index: 10; display: none;
-        }
-        .orb-graphic {
-            width: 100%; height: 100%; border-radius: 50%;
-            background: #1A4D3E; /* Brand Green */
-            border: 2px solid #F4F4F0; /* Off-white border */
-            box-shadow: 0 0 10px rgba(26, 77, 62, 0.4);
-            transition: transform 0.3s, background 0.3s;
-        }
-        .annotation-marker:hover .orb-graphic { 
-            transform: scale(1.5); 
-            background: #8D7F73; /* Clay/NecTerra Accent */
-            box-shadow: 0 0 15px rgba(141, 127, 115, 0.6);
-        }
-
-        /* INFO PANEL */
-        .info-card {
-            position: absolute; top: 10%; right: 5%; width: 260px;
-            background: rgba(244, 244, 240, 0.95); /* Off-white match */
-            padding: 25px; border-radius: 8px;
-            border-left: 4px solid #1A4D3E; /* Brand Green */
-            opacity: 0; pointer-events: none;
-            transform: translateX(20px); transition: all 0.4s ease;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.1);
-        }
-        .info-card.active { opacity: 1; pointer-events: auto; transform: translateX(0); }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
         
-        .info-card h2 { margin: 0 0 10px 0; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: #1A4D3E; font-weight: 700; }
-        .info-card p { margin: 0 0 20px 0; font-size: 13px; line-height: 1.5; color: #333; }
+        body { background-color: var(--off-white); color: var(--black); line-height: 1.6; }
+
+        /* --- TYPOGRAPHY --- */
+        h1, h2, h3 { font-weight: 700; letter-spacing: -0.05em; }
+        .roman { font-family: 'Times New Roman', serif; letter-spacing: 0.1em; }
         
-        .close-btn { 
-            background: #111; color: #fff; border: none; padding: 8px 16px; 
-            cursor: pointer; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; border-radius: 2px;
+        /* --- HERO SECTION --- */
+        header {
+            height: 90vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background: var(--forest-green);
+            color: white;
+            padding: 2rem;
         }
-        .close-btn:hover { background: #8D7F73; }
+        .logo-container { max-width: 125px; margin-bottom: .8rem; margin-top: 20px;}
+        header h1 { font-size: 4rem; margin-bottom: 0.5rem; }
+        header p { font-size: 1.2rem; opacity: 0.8; letter-spacing: 0.2em; text-transform: uppercase; }
+
+        /* --- INTERACTIVE MODEL SECTION (Full Width) --- */
+        #interactive-showcase {
+            width: 100%;
+            height: 90vh; /* Takes up most of the screen */
+            background: #ffffff;
+            position: relative;
+            border-bottom: 1px solid #ddd;
+        }
+
+        iframe#interactive-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+        }
+
+        /* --- STANDARD GRID SECTIONS (For NutHatch) --- */
+        section.standard-section { padding: 5rem 2rem; max-width: 1200px; margin: 0 auto; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; }
+        
+        .tag { 
+            display: inline-block; 
+            background: var(--black); 
+            color: white; 
+            padding: 5px 10px; 
+            font-size: 0.8rem; 
+            font-weight: bold; 
+            border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+        .pro-tag { background: var(--grey); }
+
+        /* --- PATENT SECTION --- */
+        .patents {
+            background: #e8e8e8;
+            padding: 4rem;
+            text-align: center;
+            margin-top: 4rem;
+            border-radius: 12px;
+            max-width: 1200px;
+            margin: 4rem auto;
+        }
+        .patent-number { font-family: monospace; font-size: 1.2rem; color: var(--forest-green); }
+
+        /* --- FOOTER --- */
+        footer { 
+            text-align: center; 
+            padding: 3rem; 
+            background: var(--black); 
+            color: var(--off-white); 
+            margin-top: 5rem; 
+        }
+
+        /* Mobile Fix */
+        @media (max-width: 768px) {
+            .grid { grid-template-columns: 1fr; }
+            header h1 { font-size: 2.5rem; }
+        }
     </style>
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
 </head>
 <body>
 
-    <div id="loader">INITIALIZING ENGINEERING VIEW...</div>
-    <div id="canvas-container"></div>
+    <header>
+        <img src="assets/TD HL BINDRUNE small.png" alt="TerraDignus Logo" class="logo-container"> 
+        <h1>TerraDignus</h1>
+        <p class="roman">EST. MMXV</p>
+        <br>
+        <p>Conservation Engineering. Redefined.</p>
+    </header>
 
-    <div class="info-card" id="infoPanel">
-        <h2 id="featureTitle">Title</h2>
-        <p id="featureDesc">Desc</p>
-        <button class="close-btn" onclick="resetView()">RETURN</button>
-    </div>
+    <section id="interactive-showcase">
+        <iframe 
+            id="interactive-frame" 
+            src="interactive-model.html" 
+            title="Interactive NestEgg Engineering View"
+            scrolling="no">
+        </iframe>
+    </section>
+
+    <section class="standard-section">
+        <div class="grid">
+            <div class="image-content">
+                <model-viewer 
+                    id="nuthatch-viewer" 
+                    src="assets/nuthatch-v1.glb" 
+                    orientation="0deg -90deg -45deg" 
+                    camera-orbit="0deg 75deg auto"
+                    field-of-view="25deg" 
+                    min-camera-orbit="auto auto 55%" 
+                    max-camera-orbit="auto auto 200%"
+                    auto-rotate 
+                    camera-controls 
+                    shadow-intensity="1" 
+                    environment-image="neutral" 
+                    style="width: 100%; height: 550px; background-color: transparent;">
+                </model-viewer>
+
+                <div style="text-align: center; margin-top: 15px;">
+                    <button onclick="toggleNutHatchView('closed')" style="padding: 10px 20px; margin: 0 5px; cursor: pointer; border: none; background: var(--forest-green); color: white; border-radius: 6px;">
+                        Closed Assembly
+                    </button>
+                    <button onclick="toggleNutHatchView('exploded')" style="padding: 10px 20px; margin: 0 5px; cursor: pointer; border: none; background: var(--grey); color: white; border-radius: 6px;">
+                        Exploded View
+                    </button>
+                </div>
+            </div>
+            
+            <div class="text-content">
+                <span class="tag pro-tag">THE PRO-SERIES</span>
+                <h2>The NutHatch™</h2>
+                <p class="roman">Precision Kinetic Architecture</p>
+                <br>
+                <p><strong>Logistics solved. Safety absolute.</strong> 
+                Designed for the professional conservationist, The NutHatch combines an Advanced Thermal-Insert System, Passive HVAC Roofing, Optimal Ventilation and Lightweight format.</p>
+                <ul>
+                    <li>Deployable Kinetic Assembly</li>
+                    <li>Passive HVAC Roofing System</li>
+                    <li>Integrated Thermal Insert</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <section class="patents">
+        <h3>Intellectual Property Portfolio</h3>
+        <p>Our technology is protected by pending United States Patents.</p>
+        <br>
+        <p class="patent-number">USPTO PATENT PENDING: Monolithic Composite Method</p>
+        <p class="patent-number">USPTO PATENT PENDING: Variable-Volume Deployment System</p>
+    </section>
+
+    <footer>
+        <h3>PERDIGNUS LLC</h3>
+        <p class="roman">TerraDignus™ | NecTerra</p>
+        <p>&copy; MMXXV Nicholas J. Law. All Rights Reserved.</p>
+    </footer>
 
     <script>
-        // --- 1. SETUP ---
-        const MODEL_PATH = 'assets/NestEggFBCR.glb';
-        // Adjust this if model size is wrong. If exported in inches, 1.0 works. If meters, try 39.37.
-        const GLOBAL_SCALE = 1.0; 
-
-        // YOUR COORDINATES (INCHES)
-        const annotations = [
-            {
-                id: 1, title: "1. Entrance Aperture",
-                desc: "Primary biological ingress point, dimensioned specifically for target avian species to exclude larger predators.",
-                rawPos: new THREE.Vector3(2.509, 0.00, 3.672),
-                cameraPos: { x: 5, y: 2, z: 5 }
-            },
-            {
-                id: 2, title: "2. Ventilation Aperture",
-                desc: "Lateral airflow intake designed to promote the stack effect and regulate internal cavity temperature.",
-                rawPos: new THREE.Vector3(0.0, -2.149, 3.849),
-                cameraPos: { x: 0, y: -3, z: 6 }
-            },
-            {
-                id: 3, title: "3. Rear Mounting Interface",
-                desc: "Universal mounting plane compatible with standard bracketry for rapid field deployment.",
-                rawPos: new THREE.Vector3(-0.877, 0.036, -3.951),
-                cameraPos: { x: -6, y: 1, z: -6 }
-            },
-            {
-                id: 4, title: "4. Drainage Aperture",
-                desc: "Base-integrated geometry ensuring moisture egress and pathogen control.",
-                rawPos: new THREE.Vector3(-0.003, 0.036, -0.419),
-                cameraPos: { x: 0, y: 2, z: 4 }
+        function toggleNutHatchView(state) {
+            const viewer = document.getElementById('nuthatch-viewer');
+            if (state === 'exploded') {
+                viewer.src = 'assets/nuthatch_exploded-v2-v1.glb'; 
+                viewer.orientation = '0deg -90deg -90deg'; 
+            } else {
+                viewer.src = 'assets/nuthatch-v1.glb'; 
+                viewer.orientation = '0deg -90deg -90deg'; 
             }
-        ];
-
-        // Scene
-        const scene = new THREE.Scene();
-        scene.background = null; // Transparent to see website background
-
-        const camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 0.1, 100);
-        camera.position.set(8, 4, 8); // Initial view
-
-        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.outputEncoding = THREE.sRGBEncoding;
-        document.getElementById('canvas-container').appendChild(renderer.domElement);
-
-        const controls = new THREE.OrbitControls(camera, renderer.domElement);
-        controls.enableDamping = true;
-        controls.enablePan = false;
-        controls.minDistance = 4;
-        controls.maxDistance = 20;
-
-        // Lights
-        const ambLight = new THREE.AmbientLight(0xffffff, 0.7);
-        scene.add(ambLight);
-        const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
-        dirLight.position.set(5, 10, 7);
-        scene.add(dirLight);
-        
-        // Rim Light for that "Pro" look
-        const rimLight = new THREE.DirectionalLight(0x8D7F73, 0.5); // Clay color rim
-        rimLight.position.set(-5, 2, -5);
-        scene.add(rimLight);
-
-        // --- 2. LOAD MODEL ---
-        const loader = new THREE.GLTFLoader();
-        const draco = new THREE.DRACOLoader();
-        draco.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
-        loader.setDRACOLoader(draco);
-
-        let model = null;
-        let modelGroup = new THREE.Group(); // Group allows us to rotate model independently
-        scene.add(modelGroup);
-
-        loader.load(MODEL_PATH, function(gltf) {
-            model = gltf.scene;
-            model.scale.set(GLOBAL_SCALE, GLOBAL_SCALE, GLOBAL_SCALE);
-            
-            // FIX ROTATION: Rotate -90 on X to stand up (Z-up to Y-up)
-            model.rotation.x = -Math.PI / 2;
-
-            // Center it
-            const box = new THREE.Box3().setFromObject(model);
-            const center = box.getCenter(new THREE.Vector3());
-            model.position.sub(center); 
-
-            modelGroup.add(model);
-            document.getElementById('loader').style.display = 'none';
-            
-            initAnnotations();
-
-        }, undefined, function(err) {
-            document.getElementById('loader').innerText = "Error: " + err;
-        });
-
-        // --- 3. ANNOTATIONS ---
-        function initAnnotations() {
-            annotations.forEach(ann => {
-                const div = document.createElement('div');
-                div.className = 'annotation-marker';
-                div.innerHTML = '<div class="orb-graphic"></div>';
-                div.onclick = (e) => { e.stopPropagation(); zoomTo(ann); };
-                document.body.appendChild(div);
-                ann.element = div;
-
-                // TRANSFORM COORDINATES
-                // Apply the same rotation (-90 X) to the coordinates
-                const vec = ann.rawPos.clone();
-                vec.applyAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2); 
-                ann.worldPos = vec; 
-            });
         }
-
-        function updateAnnotations() {
-            if(!model) return;
-            annotations.forEach(ann => {
-                if(!ann.worldPos) return;
-
-                // Track the model group's animation (rotation/bobbing)
-                const screenPos = ann.worldPos.clone();
-                screenPos.applyMatrix4(modelGroup.matrixWorld); 
-                
-                screenPos.project(camera);
-
-                const x = (screenPos.x * 0.5 + 0.5) * window.innerWidth;
-                const y = (-(screenPos.y * 0.5) + 0.5) * window.innerHeight;
-
-                ann.element.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px)`;
-                ann.element.style.display = 'block';
-            });
-        }
-
-        // --- 4. ANIMATION & INTERACTION ---
-        let isZoomed = false;
-        const clock = new THREE.Clock();
-
-        function animate() {
-            requestAnimationFrame(animate);
-            const t = clock.getElapsedTime();
-
-            if(modelGroup && !isZoomed) {
-                // BOBBING (Hover)
-                modelGroup.position.y = Math.sin(t * 1.5) * 0.1; 
-                
-                // ROTATION (Spin around vertical Y axis)
-                modelGroup.rotation.y += 0.002; 
-            }
-
-            controls.update();
-            renderer.render(scene, camera);
-            updateAnnotations();
-        }
-        animate();
-
-        function zoomTo(ann) {
-            isZoomed = true;
-            gsap.to(camera.position, { duration: 1.5, x: ann.cameraPos.x, y: ann.cameraPos.y, z: ann.cameraPos.z, ease: "power2.inOut" });
-            gsap.to(controls.target, { duration: 1.5, x: 0, y: 0, z: 0, ease: "power2.inOut" });
-            
-            document.getElementById('featureTitle').innerText = ann.title;
-            document.getElementById('featureDesc').innerText = ann.desc;
-            document.getElementById('infoPanel').classList.add('active');
-            
-            // Hide orbs
-            annotations.forEach(a => a.element.style.opacity = 0);
-        }
-
-        window.resetView = function() {
-            isZoomed = false;
-            gsap.to(camera.position, { duration: 1.2, x: 8, y: 4, z: 8, ease: "power2.inOut" });
-            document.getElementById('infoPanel').classList.remove('active');
-            annotations.forEach(a => a.element.style.opacity = 1);
-        }
-
-        window.onresize = () => {
-            camera.aspect = window.innerWidth/window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        };
     </script>
 </body>
 </html>
