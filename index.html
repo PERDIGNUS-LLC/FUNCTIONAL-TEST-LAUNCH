@@ -6,33 +6,19 @@
     <title>The NestEgg | Engineering Evaluation</title>
     
     <style>
-        body { margin: 0; padding: 0; font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f9f9f9; }
+        /* Basic layout reset */
+        body { margin: 0; padding: 0; font-family: sans-serif; background-color: #f9f9f9; }
         
-        /* HERO SECTION */
-        header.hero {
-            height: 60vh; /* Takes up 60% of screen */
-            background: #2c3e50;
-            color: white;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            padding: 20px;
-        }
-
-        header.hero h1 { font-size: 3rem; margin: 0; letter-spacing: 2px; }
-        header.hero p { font-size: 1.2rem; opacity: 0.8; margin-top: 10px; }
-
-        /* 3D INTERACTIVE SECTION */
+        /* 3D Model Section Container */
         #model-section {
             width: 100%;
-            height: 90vh; /* Large immersive area */
+            height: 90vh; /* Takes up most of the screen */
             background: #ffffff;
             position: relative;
             border-bottom: 1px solid #ddd;
         }
 
+        /* The Iframe that holds the 3D Model */
         iframe#interactive-frame {
             width: 100%;
             height: 100%;
@@ -40,7 +26,7 @@
             display: block;
         }
 
-        /* SECTION LABEL */
+        /* "Interactive Engineering View" Badge */
         .section-label {
             position: absolute;
             top: 20px; left: 50%; transform: translateX(-50%);
@@ -48,18 +34,13 @@
             padding: 5px 15px; border-radius: 20px;
             font-size: 12px; font-weight: bold; letter-spacing: 1px;
             z-index: 5;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
-
     </style>
 </head>
 <body>
 
     <div id="header-container"></div>
-
-    <header class="hero">
-        <h1>THE NESTEGG™</h1>
-        <p>ADVANCED COMPOSITE AVIAN HABITATION SYSTEM</p>
-    </header>
 
     <section id="model-section">
         <div class="section-label">INTERACTIVE ENGINEERING VIEW</div>
@@ -70,16 +51,16 @@
 
 
     <script>
-        // Simple fetch to load your existing header/footer files if they exist
         async function loadComponents() {
             try {
+                // Adjust paths if header.html is in a subfolder
                 const header = await fetch('header.html');
-                document.getElementById('header-container').innerHTML = await header.text();
+                if(header.ok) document.getElementById('header-container').innerHTML = await header.text();
 
                 const footer = await fetch('footer.html');
-                document.getElementById('footer-container').innerHTML = await footer.text();
+                if(footer.ok) document.getElementById('footer-container').innerHTML = await footer.text();
             } catch (e) {
-                console.log("Header/Footer not found, skipping...");
+                console.log("Header/Footer fetch error:", e);
             }
         }
         loadComponents();
