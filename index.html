@@ -5,16 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TerraDignus | The NestEgg</title>
 
-    <!-- THREE.js Core -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-
-    <!-- OrbitControls (same version) -->
     <script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-
-    <!-- GLTFLoader (same version) -->
     <script src="https://unpkg.com/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-
-    <!-- GSAP for camera animation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
 
     <style>
@@ -31,8 +24,7 @@
         /* HEADER */
         header {
             position: absolute;
-            top: 40px;
-            left: 40px;
+            top: 40px; left: 40px;
             z-index: 10;
         }
 
@@ -65,8 +57,7 @@
 
         .hotspot {
             position: absolute;
-            width: 18px;
-            height: 18px;
+            width: 18px; height: 18px;
             border-radius: 50%;
             border: 2px solid #333;
             background: rgba(255,255,255,0.2);
@@ -105,6 +96,7 @@
             max-width: 250px;
             white-space: normal;
             line-height: 1.4;
+            text-decoration: none;
         }
 
         /* FOOTER */
@@ -113,20 +105,9 @@
             padding: 50px 20px;
             text-align: center;
         }
-
-        .footer-ip h3 {
-            font-size: 20px;
-            margin-bottom: 10px;
-            font-weight: 700;
-        }
-
+        .footer-ip h3 { font-size: 20px; margin-bottom: 10px; font-weight: 700; }
         .footer-ip p { font-size: 16px; margin: 0 0 25px 0; }
-
-        .patent-list {
-            font-family: 'Courier New', monospace;
-            font-size: 13px;
-            line-height: 1.8;
-        }
+        .patent-list { font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.8; }
 
         .footer-brand {
             background-color: #080808;
@@ -134,7 +115,6 @@
             padding: 50px 20px;
             text-align: center;
         }
-
         .company-name { font-size: 18px; font-weight: 700; letter-spacing: 1px; }
         .sub-brand { font-family: 'Playfair Display', serif; font-size: 16px; color: #ccc; margin-bottom: 25px; }
         .copyright { font-size: 12px; color: #666; }
@@ -186,12 +166,7 @@ const container = document.getElementById('viewport');
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xffffff);
 
-const camera = new THREE.PerspectiveCamera(
-    45,
-    container.clientWidth / container.clientHeight,
-    0.1,
-    100
-);
+const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
 const homePos = { x: 0, y: 0.5, z: 9 };
 camera.position.set(homePos.x, homePos.y, homePos.z);
 
@@ -199,69 +174,106 @@ const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
 renderer.setSize(container.clientWidth, container.clientHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Softer shadows
 container.appendChild(renderer.domElement);
 
 /* ============================
-   2. LIGHTING
+   2. LIGHTING (Studio Setup)
 ============================ */
-scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+scene.add(new THREE.AmbientLight(0xffffff, 0.6));
 
-const keyLight = new THREE.DirectionalLight(0xffffff, 0.8);
+const keyLight = new THREE.DirectionalLight(0xffffff, 1.0);
 keyLight.position.set(5, 8, 5);
 keyLight.castShadow = true;
+keyLight.shadow.mapSize.width = 2048; // High res shadow
+keyLight.shadow.mapSize.height = 2048;
 scene.add(keyLight);
 
-scene.add(new THREE.DirectionalLight(0xffecd2, 0.3).position.set(-5, 2, 5));
+scene.add(new THREE.DirectionalLight(0xffecd2, 0.4).position.set(-5, 2, 5));
 
 /* ============================
-   3. 🔥 LOAD REAL .GLB MODEL
+   3. MATERIAL GENERATION (Necterra)
+============================ */
+// Generate procedural noise for papercrete bump map
+const cvs = document.createElement('canvas');
+cvs.width = 512; cvs.height = 512;
+const ctx = cvs.getContext('2d');
+const imgData = ctx.createImageData(512, 512);
+for (let i = 0; i < imgData.data.length; i += 4) {
+    const grain = (Math.random() * 0.5 + 0.5) * 255;
+    imgData.data[i] = grain;     // R
+    imgData.data[i+1] = grain;   // G
+    imgData.data[i+2] = grain;   // B
+    imgData.data[i+3] = 255;     // A
+}
+ctx.putImageData(imgData, 0, 0);
+const noiseTexture = new THREE.CanvasTexture(cvs);
+
+const necterraMaterial = new THREE.MeshStandardMaterial({
+    color: 0xD6C8B5, // Warm beige clay
+    roughness: 0.9,  // Matte finish
+    metalness: 0.0,
+    bumpMap: noiseTexture,
+    bumpScale: 0.02  // Subtle surface texture
+});
+
+/* ============================
+   4. LOAD MODEL
 ============================ */
 const nestEggGroup = new THREE.Group();
 scene.add(nestEggGroup);
 
 const loader = new THREE.GLTFLoader();
 
-loader.load(
-    "assets/NestEggFBCR.glb",
-    function (gltf) {
-        const model = gltf.scene;
+// Ensure this path matches your file structure exactly
+loader.load("assets/NestEggFBCR.glb", function (gltf) {
+    const model = gltf.scene;
+    
+    // Scale adjustment (tweak as needed)
+    model.scale.set(1.5, 1.5, 1.5);
 
-        model.scale.set(1.5, 1.5, 1.5);
+    // 1. Center the geometry
+    const box = new THREE.Box3().setFromObject(model);
+    const center = box.getCenter(new THREE.Vector3());
+    model.position.sub(center);
 
-        // CENTER MODEL
-        const box = new THREE.Box3().setFromObject(model);
-        const center = box.getCenter(new THREE.Vector3());
-        model.position.sub(center);
+    // 2. Apply Necterra Material & Shadow Properties
+    model.traverse((child) => {
+        if (child.isMesh) {
+            child.material = necterraMaterial; 
+            child.castShadow = true;
+            child.receiveShadow = true;
+        }
+    });
 
-        nestEggGroup.add(model);
-    },
-    undefined,
-    function (err) {
-        console.error("GLB LOAD ERROR:", err);
-    }
-);
+    nestEggGroup.add(model);
+}, undefined, function (err) {
+    console.error("Error loading model:", err);
+});
 
 /* ============================
-   4. ORBIT CONTROLS
+   5. CONTROLS
 ============================ */
 const controls = new THREE.OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.05;
-controls.enableZoom = false;
+controls.enableZoom = false; 
 controls.enablePan = false;
-controls.rotateSpeed = 0.3;
+controls.rotateSpeed = 0.4;
 controls.minPolarAngle = Math.PI / 4;
 controls.maxPolarAngle = Math.PI - Math.PI / 4;
 
 /* ============================
-   5. ANNOTATIONS
+   6. ANNOTATIONS (Update these!)
 ============================ */
+// Note: These coordinates are placeholders. 
+// Use the debug tool at the bottom to find the real ones.
 const annotations = [
     {
         id: 1,
         title: "Ventilation Aperture",
         desc: "Passive thermal regulation vent.",
-        pos: new THREE.Vector3(0.8, 1.2, 0.9),
+        pos: new THREE.Vector3(0.8, 1.2, 0.9), 
         camPos: { x: 3, y: 1.5, z: 4 },
         lineDir: "right"
     },
@@ -283,12 +295,14 @@ const annotations = [
     }
 ];
 
+// UI References
 const uiLayer = document.getElementById('ui-layer');
 const connectorLine = document.getElementById('connector-line');
 const labelDiv = document.getElementById('active-label');
 const labelTitle = document.getElementById('label-title');
 const labelDesc = document.getElementById('label-desc');
 
+// Create DOM Hotspots
 annotations.forEach(a => {
     const div = document.createElement('div');
     div.className = 'hotspot';
@@ -301,13 +315,14 @@ annotations.forEach(a => {
 });
 
 /* ============================
-   6. ANNOTATION INTERACTION
+   7. INTERACTION LOGIC
 ============================ */
 let activeAnnotation = null;
 
 function activateAnnotation(data) {
     activeAnnotation = data;
 
+    // Move Camera
     gsap.to(camera.position, {
         duration: 1.5,
         x: data.camPos.x,
@@ -316,9 +331,11 @@ function activateAnnotation(data) {
         ease: "power2.inOut"
     });
 
+    // Update Text
     labelTitle.innerText = data.title;
     labelDesc.innerText = data.desc;
 
+    // Fade In UI
     setTimeout(() => {
         if (activeAnnotation === data) {
             labelDiv.style.opacity = 1;
@@ -331,9 +348,11 @@ function resetView() {
     if (!activeAnnotation) return;
     activeAnnotation = null;
 
+    // Hide UI
     labelDiv.style.opacity = 0;
     connectorLine.style.opacity = 0;
 
+    // Reset Camera
     gsap.to(camera.position, {
         duration: 1.5,
         x: homePos.x,
@@ -343,21 +362,24 @@ function resetView() {
     });
 }
 
+// Click background to reset
 container.addEventListener('click', resetView);
 
 /* ============================
-   7. RENDER LOOP
+   8. RENDER LOOP
 ============================ */
 function animate() {
     requestAnimationFrame(animate);
     controls.update();
     renderer.render(scene, camera);
 
+    // Update Hotspot Positions
     annotations.forEach(a => {
         const screen = getScreenPos(a.pos);
         a.element.style.left = screen.x + 'px';
         a.element.style.top = screen.y + 'px';
 
+        // Occlusion Check (Simple Z-depth)
         if (screen.z > 1 || screen.z < 0) {
             a.element.style.opacity = 0;
             a.element.style.pointerEvents = "none";
@@ -367,6 +389,7 @@ function animate() {
         }
     });
 
+    // Draw Line
     if (activeAnnotation && connectorLine.style.opacity > 0) {
         drawConnector(activeAnnotation);
     }
@@ -375,7 +398,6 @@ function animate() {
 function getScreenPos(v3) {
     const v = v3.clone();
     v.project(camera);
-
     return {
         x: (v.x * 0.5 + 0.5) * container.clientWidth,
         y: (-(v.y) * 0.5 + 0.5) * container.clientHeight,
@@ -395,19 +417,15 @@ function drawConnector(data) {
         y: p2.y
     };
 
-    connectorLine.setAttribute(
-        "points",
-        `${p1.x},${p1.y} ${p2.x},${p2.y} ${p3.x},${p3.y}`
-    );
+    connectorLine.setAttribute("points", `${p1.x},${p1.y} ${p2.x},${p2.y} ${p3.x},${p3.y}`);
 
     const textPad = 10;
     const offsetW = labelDiv.offsetWidth;
-
-    labelDiv.style.left =
-        data.lineDir === "right"
-            ? p3.x + textPad + "px"
-            : p3.x - offsetW - textPad + "px";
-    labelDiv.style.top = p3.y - 10 + "px";
+    
+    labelDiv.style.left = data.lineDir === "right" 
+        ? (p3.x + textPad) + "px" 
+        : (p3.x - offsetW - textPad) + "px";
+    labelDiv.style.top = (p3.y - 10) + "px";
 }
 
 window.addEventListener("resize", () => {
@@ -417,7 +435,25 @@ window.addEventListener("resize", () => {
 });
 
 animate();
-</script>
 
+/* ============================
+   9. DEBUG / CALIBRATION TOOL
+   (Uncomment to find coordinates!)
+============================ */
+// const raycaster = new THREE.Raycaster();
+// const mouse = new THREE.Vector2();
+// window.addEventListener('dblclick', (event) => {
+//     mouse.x = (event.clientX / container.clientWidth) * 2 - 1;
+//     mouse.y = -(event.clientY / container.clientHeight) * 2 + 1;
+//     raycaster.setFromCamera(mouse, camera);
+//     const intersects = raycaster.intersectObjects(nestEggGroup.children, true);
+//     if (intersects.length > 0) {
+//         const p = intersects[0].point;
+//         console.log(`pos: new THREE.Vector3(${p.x.toFixed(2)}, ${p.y.toFixed(2)}, ${p.z.toFixed(2)}),`);
+//         alert(`Coords copied to console (F12): ${p.x.toFixed(2)}, ${p.y.toFixed(2)}, ${p.z.toFixed(2)}`);
+//     }
+// });
+
+</script>
 </body>
 </html>
