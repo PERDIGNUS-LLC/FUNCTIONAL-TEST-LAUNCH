@@ -4,9 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TerraDignus | The NestEgg</title>
+
+    <!-- THREE.js Core -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <!-- OrbitControls (same version) -->
     <script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+    <!-- GLTFLoader (same version) -->
+    <script src="https://unpkg.com/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+
+    <!-- GSAP for camera animation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Playfair+Display:wght@400;600&display=swap');
 
@@ -18,7 +28,7 @@
             color: #333;
         }
 
-        /* --- HEADER --- */
+        /* HEADER */
         header {
             position: absolute;
             top: 40px;
@@ -35,7 +45,7 @@
             letter-spacing: 0.5px;
         }
 
-        /* --- VIEWPORT & UI --- */
+        /* VIEWPORT */
         #viewport {
             position: relative;
             width: 100%;
@@ -53,7 +63,6 @@
             z-index: 5;
         }
 
-        /* Hotspots */
         .hotspot {
             position: absolute;
             width: 18px;
@@ -64,7 +73,7 @@
             cursor: pointer;
             z-index: 10;
             transform: translate(-50%, -50%);
-            transition: all 0.3s ease;
+            transition: 0.3s ease;
         }
 
         .hotspot:hover {
@@ -73,7 +82,6 @@
             border-color: #333;
         }
 
-        /* Labels */
         .label-text {
             position: absolute;
             font-family: 'Times New Roman', serif;
@@ -94,20 +102,16 @@
             font-size: 14px;
             color: #555;
             margin-top: 4px;
-            text-decoration: none;
             max-width: 250px;
             white-space: normal;
             line-height: 1.4;
         }
 
-        /* --- FOOTER --- */
-        footer { width: 100%; }
-
+        /* FOOTER */
         .footer-ip {
             background-color: #EBEBEB;
             padding: 50px 20px;
             text-align: center;
-            color: #1a1a1a;
         }
 
         .footer-ip h3 {
@@ -116,16 +120,11 @@
             font-weight: 700;
         }
 
-        .footer-ip p {
-            font-size: 16px;
-            margin: 0 0 25px 0;
-            color: #444;
-        }
+        .footer-ip p { font-size: 16px; margin: 0 0 25px 0; }
 
         .patent-list {
             font-family: 'Courier New', monospace;
             font-size: 13px;
-            color: #2F4F4F;
             line-height: 1.8;
         }
 
@@ -136,98 +135,87 @@
             text-align: center;
         }
 
-        .company-name {
-            font-size: 18px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 10px;
-        }
-
-        .sub-brand {
-            font-family: 'Playfair Display', serif;
-            font-size: 16px;
-            color: #ccc;
-            margin-bottom: 25px;
-        }
-
-        .copyright {
-            font-size: 12px;
-            color: #666;
-        }
+        .company-name { font-size: 18px; font-weight: 700; letter-spacing: 1px; }
+        .sub-brand { font-family: 'Playfair Display', serif; font-size: 16px; color: #ccc; margin-bottom: 25px; }
+        .copyright { font-size: 12px; color: #666; }
     </style>
 </head>
+
 <body>
 
-    <header>
-        <div class="brand-name">TerraDignus</div>
-    </header>
+<header>
+    <div class="brand-name">TerraDignus</div>
+</header>
 
-    <div id="viewport">
-        <svg id="ui-layer">
-            <polyline id="connector-line" points="" 
-                      style="fill:none;stroke:black;stroke-width:1.5;opacity:0;transition:opacity 0.4s" />
-        </svg>
-        
-        <div id="active-label" class="label-text">
-            <span id="label-title">Title</span>
-            <span id="label-desc" class="desc-text">Description goes here.</span>
+<div id="viewport">
+    <svg id="ui-layer">
+        <polyline id="connector-line" points="" 
+                  style="fill:none;stroke:black;stroke-width:1.5;opacity:0;transition:opacity 0.4s" />
+    </svg>
+
+    <div id="active-label" class="label-text">
+        <span id="label-title"></span>
+        <span id="label-desc" class="desc-text"></span>
+    </div>
+</div>
+
+<footer>
+    <div class="footer-ip">
+        <h3>Intellectual Property Portfolio</h3>
+        <p>Our technology is protected by pending United States Patents.</p>
+        <div class="patent-list">
+            <div>USPTO PATENT PENDING: Modular Wildlife Habitation System</div>
+            <div>USPTO PATENT PENDING: In-Situ Monolithic Composite System</div>
+            <div>USPTO PATENT PENDING: Variable-Volume Wildlife Habitation System</div>
         </div>
     </div>
 
-    <footer>
-        <div class="footer-ip">
-            <h3>Intellectual Property Portfolio</h3>
-            <p>Our technology is protected by pending United States Patents.</p>
-            
-            <div class="patent-list">
-                <div>USPTO PATENT PENDING: Modular Wildlife Habitation System</div>
-                <div>USPTO PATENT PENDING: In-Situ Monolithic Composite System</div>
-                <div>USPTO PATENT PENDING: Variable-Volume Wildlife Habitation System</div>
-            </div>
-        </div>
+    <div class="footer-brand">
+        <div class="company-name">PERDIGNUS LLC</div>
+        <div class="sub-brand">TerraDignus™ | NecTerra</div>
+        <div class="copyright">© MMXXV Nicholas J. Law. All Rights Reserved.</div>
+    </div>
+</footer>
 
-        <div class="footer-brand">
-            <div class="company-name">PERDIGNUS LLC</div>
-            <div class="sub-brand">TerraDignus™ | NecTerra</div>
-            <div class="copyright">© MMXXV Nicholas J. Law. All Rights Reserved.</div>
-        </div>
-    </footer>
 
-    <script>
-        // --- 1. SCENE SETUP ---
-        const container = document.getElementById('viewport');
-        const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0xffffff);
+<script>
+/* ============================
+   1. SCENE SETUP
+============================ */
+const container = document.getElementById('viewport');
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xffffff);
 
-        const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
-        // "Home" view position
-        const homePos = { x: 0, y: 0.5, z: 9 };
-        camera.position.set(homePos.x, homePos.y, homePos.z);
+const camera = new THREE.PerspectiveCamera(
+    45,
+    container.clientWidth / container.clientHeight,
+    0.1,
+    100
+);
+const homePos = { x: 0, y: 0.5, z: 9 };
+camera.position.set(homePos.x, homePos.y, homePos.z);
 
-        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-        renderer.setSize(container.clientWidth, container.clientHeight);
-        renderer.setPixelRatio(window.devicePixelRatio);
-        renderer.shadowMap.enabled = true;
-        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-        container.appendChild(renderer.domElement);
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+renderer.setSize(container.clientWidth, container.clientHeight);
+renderer.setPixelRatio(window.devicePixelRatio);
+renderer.shadowMap.enabled = true;
+container.appendChild(renderer.domElement);
 
-        // --- 2. LIGHTING (Soft Studio) ---
-        const ambLight = new THREE.AmbientLight(0xffffff, 0.5);
-        scene.add(ambLight);
+/* ============================
+   2. LIGHTING
+============================ */
+scene.add(new THREE.AmbientLight(0xffffff, 0.5));
 
-        const keyLight = new THREE.DirectionalLight(0xffffff, 0.8);
-        keyLight.position.set(5, 8, 5);
-        keyLight.castShadow = true;
-        keyLight.shadow.mapSize.width = 1024;
-        keyLight.shadow.mapSize.height = 1024;
-        scene.add(keyLight);
+const keyLight = new THREE.DirectionalLight(0xffffff, 0.8);
+keyLight.position.set(5, 8, 5);
+keyLight.castShadow = true;
+scene.add(keyLight);
 
-        const fillLight = new THREE.DirectionalLight(0xffecd2, 0.3);
-        fillLight.position.set(-5, 2, 5);
-        scene.add(fillLight);
+scene.add(new THREE.DirectionalLight(0xffecd2, 0.3).position.set(-5, 2, 5));
 
-        // --- 3. LOAD REAL NESTEGG .GLB MODEL ---
+/* ============================
+   3. 🔥 LOAD REAL .GLB MODEL
+============================ */
 const nestEggGroup = new THREE.Group();
 scene.add(nestEggGroup);
 
@@ -238,10 +226,9 @@ loader.load(
     function (gltf) {
         const model = gltf.scene;
 
-        // OPTIONAL — Adjust scale to look right in camera
         model.scale.set(1.5, 1.5, 1.5);
 
-        // Center the model properly
+        // CENTER MODEL
         const box = new THREE.Box3().setFromObject(model);
         const center = box.getCenter(new THREE.Vector3());
         model.position.sub(center);
@@ -249,208 +236,188 @@ loader.load(
         nestEggGroup.add(model);
     },
     undefined,
-    function (error) {
-        console.error("GLTF LOAD ERROR:", error);
+    function (err) {
+        console.error("GLB LOAD ERROR:", err);
     }
 );
 
+/* ============================
+   4. ORBIT CONTROLS
+============================ */
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.05;
+controls.enableZoom = false;
+controls.enablePan = false;
+controls.rotateSpeed = 0.3;
+controls.minPolarAngle = Math.PI / 4;
+controls.maxPolarAngle = Math.PI - Math.PI / 4;
 
-        // --- 4. CONTROLS ---
-        const controls = new THREE.OrbitControls(camera, renderer.domElement);
-        controls.enableDamping = true;
-        controls.dampingFactor = 0.05;
-        controls.enableZoom = false; // LOCKED ZOOM
-        controls.enablePan = false;
-        controls.rotateSpeed = 0.3; // SLOW ROTATION
-        controls.minPolarAngle = Math.PI / 4; // Limit vertical rotation
-        controls.maxPolarAngle = Math.PI - Math.PI / 4;
+/* ============================
+   5. ANNOTATIONS
+============================ */
+const annotations = [
+    {
+        id: 1,
+        title: "Ventilation Aperture",
+        desc: "Passive thermal regulation vent.",
+        pos: new THREE.Vector3(0.8, 1.2, 0.9),
+        camPos: { x: 3, y: 1.5, z: 4 },
+        lineDir: "right"
+    },
+    {
+        id: 2,
+        title: "Ingress Tunnel",
+        desc: "Predator-resistant entry geometry.",
+        pos: new THREE.Vector3(-1.1, 0.9, 0.9),
+        camPos: { x: -3, y: 1, z: 4 },
+        lineDir: "left"
+    },
+    {
+        id: 3,
+        title: "Basal Hemisphere",
+        desc: "Impact-resistant composite shell.",
+        pos: new THREE.Vector3(0, -1.0, 1.4),
+        camPos: { x: 0, y: -2, z: 5 },
+        lineDir: "right"
+    }
+];
 
-        // --- 5. ANNOTATION DATA (Updated Positions) ---
-        const annotations = [
-            {
-                id: 1,
-                title: "Ventilation Aperture",
-                desc: "Passive thermal regulation vent.",
-                // Positioned high on the right shoulder (Label 4)
-                pos: new THREE.Vector3(0.8, 1.2, 0.9), 
-                camPos: { x: 3, y: 1.5, z: 4 },
-                lineDir: "right"
-            },
-            {
-                id: 2,
-                title: "Ingress Tunnel",
-                desc: "Predator-resistant entry geometry.",
-                // Positioned on the snout (Label 3)
-                pos: new THREE.Vector3(-1.1, 0.9, 0.9), 
-                camPos: { x: -3, y: 1, z: 4 },
-                lineDir: "left"
-            },
-            {
-                id: 3,
-                title: "Basal Hemisphere",
-                desc: "Impact-resistant composite shell.",
-                // Positioned low on the belly (Label 17)
-                pos: new THREE.Vector3(0, -1.0, 1.4), 
-                camPos: { x: 0, y: -2, z: 5 },
-                lineDir: "right"
-            }
-        ];
+const uiLayer = document.getElementById('ui-layer');
+const connectorLine = document.getElementById('connector-line');
+const labelDiv = document.getElementById('active-label');
+const labelTitle = document.getElementById('label-title');
+const labelDesc = document.getElementById('label-desc');
 
-        // --- 6. INTERACTION LOGIC ---
-        const uiLayer = document.getElementById('ui-layer');
-        const connectorLine = document.getElementById('connector-line');
-        const labelDiv = document.getElementById('active-label');
-        const labelTitle = document.getElementById('label-title');
-        const labelDesc = document.getElementById('label-desc');
-        let activeAnnotation = null;
+annotations.forEach(a => {
+    const div = document.createElement('div');
+    div.className = 'hotspot';
+    div.addEventListener('click', e => {
+        e.stopPropagation();
+        activateAnnotation(a);
+    });
+    container.appendChild(div);
+    a.element = div;
+});
 
-        // Create HTML Hotspots
-        annotations.forEach(data => {
-            const div = document.createElement('div');
-            div.className = 'hotspot';
-            div.addEventListener('click', (e) => {
-                e.stopPropagation(); // Stop click from hitting background
-                activateAnnotation(data);
-            });
-            container.appendChild(div);
-            data.element = div;
-        });
+/* ============================
+   6. ANNOTATION INTERACTION
+============================ */
+let activeAnnotation = null;
 
-        function activateAnnotation(data) {
-            activeAnnotation = data;
+function activateAnnotation(data) {
+    activeAnnotation = data;
 
-            // 1. Move Camera (Zoom In)
-            gsap.to(camera.position, {
-                duration: 1.5,
-                x: data.camPos.x,
-                y: data.camPos.y,
-                z: data.camPos.z,
-                ease: "power2.inOut"
-            });
+    gsap.to(camera.position, {
+        duration: 1.5,
+        x: data.camPos.x,
+        y: data.camPos.y,
+        z: data.camPos.z,
+        ease: "power2.inOut"
+    });
 
-            // 2. Update Text
-            labelTitle.innerText = data.title;
-            labelDesc.innerText = data.desc;
+    labelTitle.innerText = data.title;
+    labelDesc.innerText = data.desc;
 
-            // 3. Reveal UI (Delayed for camera move)
-            setTimeout(() => {
-                if(activeAnnotation === data) { // Check if still active
-                    labelDiv.style.opacity = 1;
-                    connectorLine.style.opacity = 1;
-                }
-            }, 800);
+    setTimeout(() => {
+        if (activeAnnotation === data) {
+            labelDiv.style.opacity = 1;
+            connectorLine.style.opacity = 1;
         }
+    }, 800);
+}
 
-        function resetView() {
-            if(!activeAnnotation) return;
-            activeAnnotation = null;
+function resetView() {
+    if (!activeAnnotation) return;
+    activeAnnotation = null;
 
-            // Hide UI
-            labelDiv.style.opacity = 0;
-            connectorLine.style.opacity = 0;
+    labelDiv.style.opacity = 0;
+    connectorLine.style.opacity = 0;
 
-            // Reset Camera (Zoom Out)
-            gsap.to(camera.position, {
-                duration: 1.5,
-                x: homePos.x,
-                y: homePos.y,
-                z: homePos.z,
-                ease: "power2.inOut"
-            });
+    gsap.to(camera.position, {
+        duration: 1.5,
+        x: homePos.x,
+        y: homePos.y,
+        z: homePos.z,
+        ease: "power2.inOut"
+    });
+}
+
+container.addEventListener('click', resetView);
+
+/* ============================
+   7. RENDER LOOP
+============================ */
+function animate() {
+    requestAnimationFrame(animate);
+    controls.update();
+    renderer.render(scene, camera);
+
+    annotations.forEach(a => {
+        const screen = getScreenPos(a.pos);
+        a.element.style.left = screen.x + 'px';
+        a.element.style.top = screen.y + 'px';
+
+        if (screen.z > 1 || screen.z < 0) {
+            a.element.style.opacity = 0;
+            a.element.style.pointerEvents = "none";
+        } else {
+            a.element.style.opacity = 1;
+            a.element.style.pointerEvents = "auto";
         }
+    });
 
-        // Background Click -> Reset
-        container.addEventListener('click', resetView);
+    if (activeAnnotation && connectorLine.style.opacity > 0) {
+        drawConnector(activeAnnotation);
+    }
+}
 
-        // --- 7. RENDER LOOP ---
-        function animate() {
-            requestAnimationFrame(animate);
-            controls.update();
+function getScreenPos(v3) {
+    const v = v3.clone();
+    v.project(camera);
 
-            // Rotate model slowly if idle? (Optional, disabled for engineering feel)
-            // nestEggGroup.rotation.y += 0.001; 
+    return {
+        x: (v.x * 0.5 + 0.5) * container.clientWidth,
+        y: (-(v.y) * 0.5 + 0.5) * container.clientHeight,
+        z: v.z
+    };
+}
 
-            renderer.render(scene, camera);
+function drawConnector(data) {
+    const start = getScreenPos(data.pos);
+    const elbow = 50;
+    const length = 60;
 
-            // Update Hotspot Positions
-            annotations.forEach(data => {
-                const screenPos = getScreenPos(data.pos);
-                
-                // Simple Occlusion Check (is point behind the object?)
-                // We use distance to camera roughly
-                const dist = camera.position.distanceTo(data.pos);
-                // If it's on the back side of sphere, hide it (Dot Product method is better but this is simple)
-                // For this specific setup, we just hide if Z is too far back relative to view
-                
-                // Update CSS position
-                data.element.style.left = screenPos.x + 'px';
-                data.element.style.top = screenPos.y + 'px';
+    const p1 = { x: start.x, y: start.y };
+    const p2 = { x: start.x, y: start.y - elbow };
+    const p3 = {
+        x: data.lineDir === "right" ? start.x + length : start.x - length,
+        y: p2.y
+    };
 
-                // Rough visibility check (simple z-index hiding)
-                if (screenPos.z > 1 || screenPos.z < 0) {
-                     data.element.style.opacity = 0;
-                     data.element.style.pointerEvents = 'none';
-                } else {
-                     data.element.style.opacity = 1;
-                     data.element.style.pointerEvents = 'auto';
-                }
-            });
+    connectorLine.setAttribute(
+        "points",
+        `${p1.x},${p1.y} ${p2.x},${p2.y} ${p3.x},${p3.y}`
+    );
 
-            // Draw Connector Line
-            if (activeAnnotation && connectorLine.style.opacity > 0) {
-                drawConnector(activeAnnotation);
-            }
-        }
+    const textPad = 10;
+    const offsetW = labelDiv.offsetWidth;
 
-        function getScreenPos(vector3) {
-            // Must clone because project changes the vector
-            const v = vector3.clone();
-            // We need to account for the Group rotation if we rotated the group
-            // But here we didn't rotate the group, only added children
-            v.project(camera);
+    labelDiv.style.left =
+        data.lineDir === "right"
+            ? p3.x + textPad + "px"
+            : p3.x - offsetW - textPad + "px";
+    labelDiv.style.top = p3.y - 10 + "px";
+}
 
-            const x = (v.x * 0.5 + 0.5) * container.clientWidth;
-            const y = (-(v.y) * 0.5 + 0.5) * container.clientHeight;
-            return { x, y, z: v.z };
-        }
+window.addEventListener("resize", () => {
+    camera.aspect = container.clientWidth / container.clientHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(container.clientWidth, container.clientHeight);
+});
 
-        function drawConnector(data) {
-            const start = getScreenPos(data.pos);
-            const lineLength = 60;
-            const elbowHeight = 50;
+animate();
+</script>
 
-            let p1, p2, p3;
-
-            // Engineering "Elbow" Style:
-            // Point 1: At the hotspot
-            // Point 2: Up/Down vertical offset
-            // Point 3: Left/Right horizontal to text
-            
-            p1 = { x: start.x, y: start.y };
-            p2 = { x: start.x, y: start.y - elbowHeight }; // Go Up
-            p3 = { x: (data.lineDir === 'right' ? start.x + lineLength : start.x - lineLength), y: p2.y }; // Go Sideways
-
-            // Update SVG Polyline
-            connectorLine.setAttribute('points', `${p1.x},${p1.y} ${p2.x},${p2.y} ${p3.x},${p3.y}`);
-
-            // Position Text at end of line
-            const textPad = 10;
-            if (data.lineDir === 'right') {
-                labelDiv.style.left = (p3.x + textPad) + 'px';
-            } else {
-                labelDiv.style.left = (p3.x - labelDiv.offsetWidth - textPad) + 'px';
-            }
-            labelDiv.style.top = (p3.y - 10) + 'px'; // Sit on the line
-        }
-
-        // Handle Resize
-        window.addEventListener('resize', () => {
-            camera.aspect = container.clientWidth / container.clientHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(container.clientWidth, container.clientHeight);
-        });
-
-        animate();
-    </script>
 </body>
 </html>
