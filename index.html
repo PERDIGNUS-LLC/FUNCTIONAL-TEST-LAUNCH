@@ -8,6 +8,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://unpkg.com/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://unpkg.com/three@0.128.0/examples/js/loaders/DRACOLoader.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
 
     <style>
@@ -174,18 +175,18 @@ const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
 renderer.setSize(container.clientWidth, container.clientHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Softer shadows
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 container.appendChild(renderer.domElement);
 
 /* ============================
-   2. LIGHTING (Studio Setup)
+   2. LIGHTING
 ============================ */
 scene.add(new THREE.AmbientLight(0xffffff, 0.6));
 
 const keyLight = new THREE.DirectionalLight(0xffffff, 1.0);
 keyLight.position.set(5, 8, 5);
 keyLight.castShadow = true;
-keyLight.shadow.mapSize.width = 2048; // High res shadow
+keyLight.shadow.mapSize.width = 2048;
 keyLight.shadow.mapSize.height = 2048;
 scene.add(keyLight);
 
@@ -194,50 +195,62 @@ scene.add(new THREE.DirectionalLight(0xffecd2, 0.4).position.set(-5, 2, 5));
 /* ============================
    3. MATERIAL GENERATION (Necterra)
 ============================ */
-// Generate procedural noise for papercrete bump map
 const cvs = document.createElement('canvas');
 cvs.width = 512; cvs.height = 512;
 const ctx = cvs.getContext('2d');
 const imgData = ctx.createImageData(512, 512);
 for (let i = 0; i < imgData.data.length; i += 4) {
     const grain = (Math.random() * 0.5 + 0.5) * 255;
-    imgData.data[i] = grain;     // R
-    imgData.data[i+1] = grain;   // G
-    imgData.data[i+2] = grain;   // B
-    imgData.data[i+3] = 255;     // A
+    imgData.data[i] = grain;
+    imgData.data[i+1] = grain;
+    imgData.data[i+2] = grain;
+    imgData.data[i+3] = 255;
 }
 ctx.putImageData(imgData, 0, 0);
 const noiseTexture = new THREE.CanvasTexture(cvs);
 
 const necterraMaterial = new THREE.MeshStandardMaterial({
-    color: 0xD6C8B5, // Warm beige clay
-    roughness: 0.9,  // Matte finish
+    color: 0xD6C8B5,
+    roughness: 0.9,
     metalness: 0.0,
     bumpMap: noiseTexture,
-    bumpScale: 0.02  // Subtle surface texture
+    bumpScale: 0.02
 });
 
 /* ============================
-   4. LOAD MODEL
+   4. LOAD MODEL (With DRACO Fix AND Annotation Alignment)
 ============================ */
 const nestEggGroup = new THREE.Group();
 scene.add(nestEggGroup);
 
 const loader = new THREE.GLTFLoader();
 
-// Ensure this path matches your file structure exactly
+// FIX A: Configure DRACO Loader for your compressed GLB file
+const dracoLoader = new THREE.DRACOLoader();
+dracoLoader.setDecoderPath('https://unpkg.com/three@0.128.0/examples/js/libs/draco/');
+loader.setDRACOLoader(dracoLoader); 
+
+// Start Load
 loader.load("assets/NestEggFBCR.glb", function (gltf) {
     const model = gltf.scene;
     
-    // Scale adjustment (tweak as needed)
+    // Scale adjustment
     model.scale.set(1.5, 1.5, 1.5);
 
-    // 1. Center the geometry
+    // 1. Determine the center offset from the original model geometry
     const box = new THREE.Box3().setFromObject(model);
     const center = box.getCenter(new THREE.Vector3());
-    model.position.sub(center);
+    
+    // 2. Apply the offset to the model position (moves model to 0,0,0)
+    model.position.sub(center); 
 
-    // 2. Apply Necterra Material & Shadow Properties
+    // 3. ⭐️ CRITICAL ALIGNMENT FIX: Apply the exact same offset to the annotations
+    // This moves the annotations along with the model, maintaining their relative position to the surface.
+    annotations.forEach(a => {
+        a.pos.sub(center);
+    });
+    
+    // 4. Apply Necterra Material & Shadow Properties
     model.traverse((child) => {
         if (child.isMesh) {
             child.material = necterraMaterial; 
@@ -264,15 +277,14 @@ controls.minPolarAngle = Math.PI / 4;
 controls.maxPolarAngle = Math.PI - Math.PI / 4;
 
 /* ============================
-   6. ANNOTATIONS (Update these!)
+   6. ANNOTATIONS (Ensure these are your Fusion 360 coordinates)
 ============================ */
-// Note: These coordinates are placeholders. 
-// Use the debug tool at the bottom to find the real ones.
 const annotations = [
     {
         id: 1,
         title: "Ventilation Aperture",
         desc: "Passive thermal regulation vent.",
+        // ⚠️ Placeholder: Insert your exact Fusion 360 coordinate here
         pos: new THREE.Vector3(0.8, 1.2, 0.9), 
         camPos: { x: 3, y: 1.5, z: 4 },
         lineDir: "right"
@@ -281,6 +293,7 @@ const annotations = [
         id: 2,
         title: "Ingress Tunnel",
         desc: "Predator-resistant entry geometry.",
+        // ⚠️ Placeholder: Insert your exact Fusion 360 coordinate here
         pos: new THREE.Vector3(-1.1, 0.9, 0.9),
         camPos: { x: -3, y: 1, z: 4 },
         lineDir: "left"
@@ -289,6 +302,7 @@ const annotations = [
         id: 3,
         title: "Basal Hemisphere",
         desc: "Impact-resistant composite shell.",
+        // ⚠️ Placeholder: Insert your exact Fusion 360 coordinate here
         pos: new THREE.Vector3(0, -1.0, 1.4),
         camPos: { x: 0, y: -2, z: 5 },
         lineDir: "right"
@@ -322,7 +336,6 @@ let activeAnnotation = null;
 function activateAnnotation(data) {
     activeAnnotation = data;
 
-    // Move Camera
     gsap.to(camera.position, {
         duration: 1.5,
         x: data.camPos.x,
@@ -331,11 +344,9 @@ function activateAnnotation(data) {
         ease: "power2.inOut"
     });
 
-    // Update Text
     labelTitle.innerText = data.title;
     labelDesc.innerText = data.desc;
 
-    // Fade In UI
     setTimeout(() => {
         if (activeAnnotation === data) {
             labelDiv.style.opacity = 1;
@@ -348,11 +359,9 @@ function resetView() {
     if (!activeAnnotation) return;
     activeAnnotation = null;
 
-    // Hide UI
     labelDiv.style.opacity = 0;
     connectorLine.style.opacity = 0;
 
-    // Reset Camera
     gsap.to(camera.position, {
         duration: 1.5,
         x: homePos.x,
@@ -362,7 +371,6 @@ function resetView() {
     });
 }
 
-// Click background to reset
 container.addEventListener('click', resetView);
 
 /* ============================
@@ -373,13 +381,11 @@ function animate() {
     controls.update();
     renderer.render(scene, camera);
 
-    // Update Hotspot Positions
     annotations.forEach(a => {
         const screen = getScreenPos(a.pos);
         a.element.style.left = screen.x + 'px';
         a.element.style.top = screen.y + 'px';
 
-        // Occlusion Check (Simple Z-depth)
         if (screen.z > 1 || screen.z < 0) {
             a.element.style.opacity = 0;
             a.element.style.pointerEvents = "none";
@@ -389,7 +395,6 @@ function animate() {
         }
     });
 
-    // Draw Line
     if (activeAnnotation && connectorLine.style.opacity > 0) {
         drawConnector(activeAnnotation);
     }
@@ -438,7 +443,7 @@ animate();
 
 /* ============================
    9. DEBUG / CALIBRATION TOOL
-   (Uncomment to find coordinates!)
+   (Commented out, but ready if needed)
 ============================ */
 // const raycaster = new THREE.Raycaster();
 // const mouse = new THREE.Vector2();
@@ -446,14 +451,13 @@ animate();
 //     mouse.x = (event.clientX / container.clientWidth) * 2 - 1;
 //     mouse.y = -(event.clientY / container.clientHeight) * 2 + 1;
 //     raycaster.setFromCamera(mouse, camera);
-//     const intersects = raycaster.intersectObjects(nestEggGroup.children, true);
+//     const intersects = raycaster.intersectObjects(nestEggGroup.children, true); 
 //     if (intersects.length > 0) {
 //         const p = intersects[0].point;
 //         console.log(`pos: new THREE.Vector3(${p.x.toFixed(2)}, ${p.y.toFixed(2)}, ${p.z.toFixed(2)}),`);
 //         alert(`Coords copied to console (F12): ${p.x.toFixed(2)}, ${p.y.toFixed(2)}, ${p.z.toFixed(2)}`);
 //     }
 // });
-
 </script>
 </body>
 </html>
