@@ -180,18 +180,30 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 container.appendChild(renderer.domElement);
 
 /* ============================
-   2. LIGHTING
+   2. LIGHTING — CALIBRATED
 ============================ */
-scene.add(new THREE.AmbientLight(0xffffff, 0.6));
 
-const keyLight = new THREE.DirectionalLight(0xffffff, 1.0);
-keyLight.position.set(5, 8, 5);
+// MUCH softer ambient light
+scene.add(new THREE.AmbientLight(0xffffff, 0.25));
+
+// KEY LIGHT — reduced, moved slightly higher
+const keyLight = new THREE.DirectionalLight(0xffffff, 0.55);
+keyLight.position.set(4, 10, 6);
 keyLight.castShadow = true;
-keyLight.shadow.mapSize.width = 2048;
-keyLight.shadow.mapSize.height = 2048;
+keyLight.shadow.mapSize.width = 1024;
+keyLight.shadow.mapSize.height = 1024;
 scene.add(keyLight);
 
-const fillLight = new THREE.DirectionalLight(0xffecd2, 0.4); fillLight.position.set(-5, 2, 5); scene.add(fillLight);
+// FILL LIGHT — warmer but VERY soft
+const fillLight = new THREE.DirectionalLight(0xffe9c9, 0.20);
+fillLight.position.set(-6, 3, 4);
+scene.add(fillLight);
+
+// RIM LIGHT (adds silhouette definition)
+const rimLight = new THREE.DirectionalLight(0xffffff, 0.35);
+rimLight.position.set(0, 6, -6);
+scene.add(rimLight);
+
 
 /* ============================
    3. MATERIAL GENERATION (Necterra)
