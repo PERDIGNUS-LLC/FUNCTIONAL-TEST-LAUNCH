@@ -219,14 +219,34 @@ const necterraMaterial = new THREE.MeshStandardMaterial({
 });
 
 /* ============================
-   4. LOAD MODEL (Rotated 120° CCW)
+   4. MODEL ORIENTATION (DEGREE-BASED)
 ============================ */
+
+// Helper: convert degrees → radians
+function deg(d) { return d * Math.PI / 180; }
+
+// Group for the NestEgg
 const nestEggGroup = new THREE.Group();
 
-// Rotate upright (X), angle the snout (Y), then spin 120° counterclockwise (Z)
-nestEggGroup.rotation.set(Math.PI / 2, Math.PI / 4, Math.PI / 6);
+// Default starting rotation
+// X = upright tilt
+// Y = snout angle
+// Z = CCW spin (easy to change)
+nestEggGroup.rotation.set(
+    deg(90),   // X-axis tilt
+    deg(45),   // Y-axis angle
+    deg(0)     // Z-axis CCW rotation — adjust this live
+);
 
 scene.add(nestEggGroup);
+
+// LIVE CALIBRATION TOOL
+// Try things like: rotate(90, 45, 120)
+window.rotate = (x, y, z) => {
+    nestEggGroup.rotation.set(deg(x), deg(y), deg(z));
+    console.log(`Rotation set to X:${x}°  Y:${y}°  Z:${z}°`);
+};
+
 
 const loader = new THREE.GLTFLoader();
 
