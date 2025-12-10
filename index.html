@@ -161,14 +161,15 @@
 
 <script>
 /* ============================
-   1. SCENE SETUP
+   1. SCENE SETUP (Initial Camera Position Adjusted)
 ============================ */
 const container = document.getElementById('viewport');
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xffffff);
 
 const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
-const homePos = { x: 0, y: 0.5, z: 9 };
+// ⭐ ADJUSTMENT: Moved camera closer (Z=6) and centered vertically (Y=0)
+const homePos = { x: 0, y: 0, z: 6 }; 
 camera.position.set(homePos.x, homePos.y, homePos.z);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -234,8 +235,8 @@ loader.setDRACOLoader(dracoLoader);
 loader.load("assets/NestEggFBCR.glb", function (gltf) {
     const model = gltf.scene;
     
-    // Scale adjustment
-    model.scale.set(1.5, 1.5, 1.5);
+    // ⭐ ADJUSTMENT: Reduced scale from 1.5 to 0.9
+    model.scale.set(0.9, 0.9, 0.9);
 
     // 1. Determine the center offset from the original model geometry
     const box = new THREE.Box3().setFromObject(model);
@@ -244,8 +245,7 @@ loader.load("assets/NestEggFBCR.glb", function (gltf) {
     // 2. Apply the offset to the model position (moves model to 0,0,0)
     model.position.sub(center); 
 
-    // 3. ⭐️ CRITICAL ALIGNMENT FIX: Apply the exact same offset to the annotations
-    // This moves the annotations along with the model, maintaining their relative position to the surface.
+    // 3. CRITICAL ALIGNMENT FIX: Apply the exact same offset to the annotations
     annotations.forEach(a => {
         a.pos.sub(center);
     });
