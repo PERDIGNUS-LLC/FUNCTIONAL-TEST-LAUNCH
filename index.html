@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="lang">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -219,20 +219,24 @@ const necterraMaterial = new THREE.MeshStandardMaterial({
 });
 
 /* ============================
-   4. LOAD MODEL (Final Rotation and Alignment Fixes)
+   4. LOAD MODEL (Fix: 90 Degree Upright Rotation)
 ============================ */
 const nestEggGroup = new THREE.Group();
 
-// FINAL ROTATION FIX: Orient to desired 3/4 perspective
-nestEggGroup.rotation.z = Math.PI / 4;    
-nestEggGroup.rotation.x = Math.PI / 4;    
-nestEggGroup.rotation.y = Math.PI / 4;    
+// ⭐ FIX: 90 degrees on X stands it perfectly upright
+nestEggGroup.rotation.x = Math.PI / 2; 
+
+// Keep 45 degrees on Y to show the "snout" in perspective
+nestEggGroup.rotation.y = Math.PI / 4; 
+
+// Reset Z
+nestEggGroup.rotation.z = 0;
 
 scene.add(nestEggGroup);
 
 const loader = new THREE.GLTFLoader();
 
-// FIX A: Configure DRACO Loader
+// Configure DRACO Loader
 const dracoLoader = new THREE.DRACOLoader();
 dracoLoader.setDecoderPath('https://unpkg.com/three@0.128.0/examples/js/libs/draco/');
 loader.setDRACOLoader(dracoLoader); 
@@ -241,22 +245,20 @@ loader.setDRACOLoader(dracoLoader);
 loader.load("assets/NestEggFBCR.glb", function (gltf) {
     const model = gltf.scene;
     
-    // ⭐ FINAL ADJUSTMENT: Reduced scale to 0.72 (10% smaller than 0.8)
+    // Scale: 0.72 (as requested previously)
     model.scale.set(0.72, 0.72, 0.72);
 
-    // 1. Determine the center offset from the original model geometry
+    // 1. Center geometry
     const box = new THREE.Box3().setFromObject(model);
     const center = box.getCenter(new THREE.Vector3());
-    
-    // 2. Apply the offset to the model position
     model.position.sub(center); 
 
-    // 3. CRITICAL ALIGNMENT FIX: Apply the exact same offset to the annotations
+    // 2. Align annotations
     annotations.forEach(a => {
         a.pos.sub(center);
     });
     
-    // 4. Apply Necterra Material & Shadow Properties
+    // 3. Apply Material
     model.traverse((child) => {
         if (child.isMesh) {
             child.material = necterraMaterial; 
@@ -283,14 +285,13 @@ controls.minPolarAngle = Math.PI / 4;
 controls.maxPolarAngle = Math.PI - Math.PI / 4;
 
 /* ============================
-   6. ANNOTATIONS (Ensure these are your Fusion 360 coordinates)
+   6. ANNOTATIONS
 ============================ */
 const annotations = [
     {
         id: 1,
         title: "Ventilation Aperture",
         desc: "Passive thermal regulation vent.",
-        // ⚠️ Placeholder: Insert your exact Fusion 360 coordinate here
         pos: new THREE.Vector3(0.8, 1.2, 0.9), 
         camPos: { x: 3, y: 1.5, z: 4 }, 
         lineDir: "right"
@@ -299,7 +300,6 @@ const annotations = [
         id: 2,
         title: "Ingress Tunnel",
         desc: "Predator-resistant entry geometry.",
-        // ⚠️ Placeholder: Insert your exact Fusion 360 coordinate here
         pos: new THREE.Vector3(-1.1, 0.9, 0.9),
         camPos: { x: -3, y: 1, z: 4 },
         lineDir: "left"
@@ -308,7 +308,6 @@ const annotations = [
         id: 3,
         title: "Basal Hemisphere",
         desc: "Impact-resistant composite shell.",
-        // ⚠️ Placeholder: Insert your exact Fusion 360 coordinate here
         pos: new THREE.Vector3(0, -1.0, 1.4),
         camPos: { x: 0, y: -2, z: 5 },
         lineDir: "right"
@@ -408,11 +407,8 @@ function animate() {
 
 function getScreenPos(v3) {
     const v = v3.clone();
-    
-    // Apply the group's rotation to the annotation point before projection
+    // Apply group rotation to ensure hotspots stick to the rotating model
     v.applyEuler(nestEggGroup.rotation);
-    
-    // Now project the world position
     v.project(camera); 
     
     return {
@@ -455,7 +451,6 @@ animate();
 
 /* ============================
    9. DEBUG / CALIBRATION TOOL
-   (Commented out, but ready if needed)
 ============================ */
 // const raycaster = new THREE.Raycaster();
 // const mouse = new THREE.Vector2();
