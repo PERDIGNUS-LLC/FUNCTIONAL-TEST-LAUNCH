@@ -130,7 +130,7 @@
 
 <div id="viewport">
     <svg id="ui-layer">
-        <polyline id="connector-line" points="" 
+        <polyline id="connector-line" points=""
                   style="fill:none;stroke:black;stroke-width:1.5;opacity:0;transition:opacity 0.4s" />
     </svg>
 
@@ -169,7 +169,7 @@ scene.background = new THREE.Color(0xffffff);
 
 const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
 // Camera Z=10 (zoom-out) and Y=0 (centered)
-const homePos = { x: 0, y: 0, z: 10 }; 
+const homePos = { x: 0, y: 0, z: 10 };
 camera.position.set(homePos.x, homePos.y, homePos.z);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -219,18 +219,12 @@ const necterraMaterial = new THREE.MeshStandardMaterial({
 });
 
 /* ============================
-   4. LOAD MODEL (Fix: 90 Degree Upright Rotation)
+   4. LOAD MODEL (Rotated 120° CCW)
 ============================ */
 const nestEggGroup = new THREE.Group();
 
-// ⭐ FIX: 90 degrees on X stands it perfectly upright
-nestEggGroup.rotation.x = Math.PI / 2; 
-
-// Keep 45 degrees on Y to show the "snout" in perspective
-nestEggGroup.rotation.y = Math.PI / 4; 
-
-// Reset Z
-nestEggGroup.rotation.z = (120 * Math.PI) / 180;
+// Rotate upright (X), angle the snout (Y), then spin 120° counterclockwise (Z)
+nestEggGroup.rotation.set(Math.PI / 2, Math.PI / 4, (120 * Math.PI) / 180);
 
 scene.add(nestEggGroup);
 
@@ -239,7 +233,7 @@ const loader = new THREE.GLTFLoader();
 // Configure DRACO Loader
 const dracoLoader = new THREE.DRACOLoader();
 dracoLoader.setDecoderPath('https://unpkg.com/three@0.128.0/examples/js/libs/draco/');
-loader.setDRACOLoader(dracoLoader); 
+loader.setDRACOLoader(dracoLoader);
 
 // Start Load
 loader.load("assets/NestEggFBCR.glb", function (gltf) {
@@ -252,7 +246,7 @@ loader.load("assets/NestEggFBCR.glb", function (gltf) {
     const box = new THREE.Box3().setFromObject(model);
     const center = box.getCenter(new THREE.Vector3());
     model.position.sub(center); 
-
+    
     // 2. Align annotations
     annotations.forEach(a => {
         a.pos.sub(center);
