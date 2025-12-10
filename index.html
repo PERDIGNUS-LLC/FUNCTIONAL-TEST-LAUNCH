@@ -224,9 +224,9 @@ const necterraMaterial = new THREE.MeshStandardMaterial({
 const nestEggGroup = new THREE.Group();
 
 // FINAL ROTATION FIX: Orient to desired 3/4 perspective
-nestEggGroup.rotation.z = Math.PI / 2;    
-nestEggGroup.rotation.x = 10 * (Math.PI / 90);    
-nestEggGroup.rotation.y = Math.PI / 2;    
+nestEggGroup.rotation.z = -Math.PI / 2;    
+nestEggGroup.rotation.x = 0;    
+nestEggGroup.rotation.y = -Math.PI / 2;    
 
 scene.add(nestEggGroup);
 
