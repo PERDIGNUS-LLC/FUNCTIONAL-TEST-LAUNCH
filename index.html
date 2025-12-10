@@ -161,14 +161,14 @@
 
 <script>
 /* ============================
-   1. SCENE SETUP (Initial Camera Position Adjusted)
+   1. SCENE SETUP (Initial Camera Position and Scene Configuration)
 ============================ */
 const container = document.getElementById('viewport');
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xffffff);
 
 const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
-// ⭐ ADJUSTMENT: Moved camera closer (Z=6) and centered vertically (Y=0)
+// ADJUSTMENT: Camera Z=6 (zoom-out) and Y=0 (centered)
 const homePos = { x: 0, y: 0, z: 6 }; 
 camera.position.set(homePos.x, homePos.y, homePos.z);
 
@@ -219,9 +219,14 @@ const necterraMaterial = new THREE.MeshStandardMaterial({
 });
 
 /* ============================
-   4. LOAD MODEL (With DRACO Fix AND Annotation Alignment)
+   4. LOAD MODEL (With Rotation and Alignment Fixes)
 ============================ */
 const nestEggGroup = new THREE.Group();
+
+// ⭐ NEW ADJUSTMENT: Rotate the entire group to show the 3/4 perspective on load
+nestEggGroup.rotation.y = Math.PI / 4;  // Rotate 45 degrees around Y (yaw)
+nestEggGroup.rotation.x = Math.PI / 8;  // Rotate 22.5 degrees around X (pitch down)
+
 scene.add(nestEggGroup);
 
 const loader = new THREE.GLTFLoader();
@@ -235,7 +240,7 @@ loader.setDRACOLoader(dracoLoader);
 loader.load("assets/NestEggFBCR.glb", function (gltf) {
     const model = gltf.scene;
     
-    // ⭐ ADJUSTMENT: Reduced scale from 1.5 to 0.9
+    // ADJUSTMENT: Reduced scale from 1.5 to 0.9
     model.scale.set(0.9, 0.9, 0.9);
 
     // 1. Determine the center offset from the original model geometry
@@ -248,6 +253,9 @@ loader.load("assets/NestEggFBCR.glb", function (gltf) {
     // 3. CRITICAL ALIGNMENT FIX: Apply the exact same offset to the annotations
     annotations.forEach(a => {
         a.pos.sub(center);
+        // NOTE: The Fusion 360 coordinates MUST be adjusted manually if the origin 
+        // in Fusion was not centered on the model's base, but the centering logic 
+        // here should handle it correctly.
     });
     
     // 4. Apply Necterra Material & Shadow Properties
@@ -286,7 +294,8 @@ const annotations = [
         desc: "Passive thermal regulation vent.",
         // ⚠️ Placeholder: Insert your exact Fusion 360 coordinate here
         pos: new THREE.Vector3(0.8, 1.2, 0.9), 
-        camPos: { x: 3, y: 1.5, z: 4 },
+        // NOTE: The camera position must match the model's new 3/4 rotation for the zoom to work!
+        camPos: { x: 3, y: 1.5, z: 4 }, 
         lineDir: "right"
     },
     {
@@ -382,6 +391,9 @@ function animate() {
     renderer.render(scene, camera);
 
     annotations.forEach(a => {
+        // The position vector must be world position after rotation/translation
+        // Since the annotation points (a.pos) and the model (model.position)
+        // are children of nestEggGroup, the projection handles the group rotation.
         const screen = getScreenPos(a.pos);
         a.element.style.left = screen.x + 'px';
         a.element.style.top = screen.y + 'px';
@@ -401,8 +413,21 @@ function animate() {
 }
 
 function getScreenPos(v3) {
+    // We must project the point's World position, not its local position
     const v = v3.clone();
-    v.project(camera);
+    
+    // We need a temporary object to get the point's world position after rotation.
+    // The annotation point is currently a Vector3, not an object in the group.
+    // However, since we apply the centering offset (sub(center)) to the Vector3 
+    // in the loader, we should treat it as a point relative to the now-centered model.
+    // If the annotations were children of the model, they would handle rotation automatically.
+    
+    // Since they are not, we will temporarily apply the group's rotation before projection:
+    v.applyEuler(nestEggGroup.rotation);
+    
+    // Now project the world position
+    v.project(camera); 
+    
     return {
         x: (v.x * 0.5 + 0.5) * container.clientWidth,
         y: (-(v.y) * 0.5 + 0.5) * container.clientHeight,
