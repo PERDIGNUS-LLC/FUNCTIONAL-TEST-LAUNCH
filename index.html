@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="lang">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -161,14 +161,14 @@
 
 <script>
 /* ============================
-   1. SCENE SETUP (Camera Position Adjusted)
+   1. SCENE SETUP
 ============================ */
 const container = document.getElementById('viewport');
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xffffff);
 
 const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
-// ADJUSTMENT: Moved camera out further (Z=10) for better framing
+// Camera Z=10 (zoom-out) and Y=0 (centered)
 const homePos = { x: 0, y: 0, z: 10 }; 
 camera.position.set(homePos.x, homePos.y, homePos.z);
 
@@ -223,20 +223,16 @@ const necterraMaterial = new THREE.MeshStandardMaterial({
 ============================ */
 const nestEggGroup = new THREE.Group();
 
-// ⭐ FINAL ROTATION FIX: Rotate model from its side view to upright 3/4 view
-// 1. Rotate 90 degrees around Z to point the snout along the X-axis temporarily.
-// 2. Rotate 90 degrees around X to stand it up (Y-up).
-// 3. Rotate 45 degrees around Y (yaw) for 3/4 perspective.
-// This compensates for the GLB's default orientation.
-nestEggGroup.rotation.z = Math.PI / 2;    // +90 degrees Z
-nestEggGroup.rotation.x = Math.PI / 2;    // +90 degrees X (stand upright)
-nestEggGroup.rotation.y = Math.PI / 4;    // +45 degrees Y (3/4 perspective) 
+// FINAL ROTATION FIX: Orient to desired 3/4 perspective
+nestEggGroup.rotation.z = Math.PI / 2;    
+nestEggGroup.rotation.x = Math.PI / 2;    
+nestEggGroup.rotation.y = Math.PI / 4;    
 
 scene.add(nestEggGroup);
 
 const loader = new THREE.GLTFLoader();
 
-// FIX A: Configure DRACO Loader for your compressed GLB file
+// FIX A: Configure DRACO Loader
 const dracoLoader = new THREE.DRACOLoader();
 dracoLoader.setDecoderPath('https://unpkg.com/three@0.128.0/examples/js/libs/draco/');
 loader.setDRACOLoader(dracoLoader); 
@@ -245,14 +241,14 @@ loader.setDRACOLoader(dracoLoader);
 loader.load("assets/NestEggFBCR.glb", function (gltf) {
     const model = gltf.scene;
     
-    // ADJUSTMENT: Reduced scale further for better fit
-    model.scale.set(0.8, 0.8, 0.8);
+    // ⭐ FINAL ADJUSTMENT: Reduced scale to 0.72 (10% smaller than 0.8)
+    model.scale.set(0.72, 0.72, 0.72);
 
     // 1. Determine the center offset from the original model geometry
     const box = new THREE.Box3().setFromObject(model);
     const center = box.getCenter(new THREE.Vector3());
     
-    // 2. Apply the offset to the model position (moves model center to 0,0,0)
+    // 2. Apply the offset to the model position
     model.position.sub(center); 
 
     // 3. CRITICAL ALIGNMENT FIX: Apply the exact same offset to the annotations
@@ -296,7 +292,6 @@ const annotations = [
         desc: "Passive thermal regulation vent.",
         // ⚠️ Placeholder: Insert your exact Fusion 360 coordinate here
         pos: new THREE.Vector3(0.8, 1.2, 0.9), 
-        // NOTE: Camera zoom positions may now need calibration with the model's new rotation
         camPos: { x: 3, y: 1.5, z: 4 }, 
         lineDir: "right"
     },
@@ -415,8 +410,6 @@ function getScreenPos(v3) {
     const v = v3.clone();
     
     // Apply the group's rotation to the annotation point before projection
-    // This is necessary because the Vector3 annotation is not a scene object,
-    // so its rotation is not automatically updated by Three.js.
     v.applyEuler(nestEggGroup.rotation);
     
     // Now project the world position
@@ -473,10 +466,6 @@ animate();
 //     const intersects = raycaster.intersectObjects(nestEggGroup.children, true); 
 //     if (intersects.length > 0) {
 //         const p = intersects[0].point;
-//         // WARNING: The coordinates returned here are local to the model.
-//         // Since the model is rotated, these will be different from the 
-//         // original Fusion 360 coordinates. Use them only if you decide 
-//         // not to use the Fusion 360 values.
 //         console.log(`pos: new THREE.Vector3(${p.x.toFixed(2)}, ${p.y.toFixed(2)}, ${p.z.toFixed(2)}),`);
 //         alert(`Coords copied to console (F12): ${p.x.toFixed(2)}, ${p.y.toFixed(2)}, ${p.z.toFixed(2)}`);
 //     }
