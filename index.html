@@ -191,7 +191,7 @@ keyLight.shadow.mapSize.width = 2048;
 keyLight.shadow.mapSize.height = 2048;
 scene.add(keyLight);
 
-scene.add(new THREE.DirectionalLight(0xffecd2, 0.4).position.set(-5, 2, 5));
+const fillLight = new THREE.DirectionalLight(0xffecd2, 0.4); fillLight.position.set(-5, 2, 5); scene.add(fillLight);
 
 /* ============================
    3. MATERIAL GENERATION (Necterra)
