@@ -161,15 +161,15 @@
 
 <script>
 /* ============================
-   1. SCENE SETUP (Initial Camera Position and Scene Configuration)
+   1. SCENE SETUP (Camera Position Adjusted)
 ============================ */
 const container = document.getElementById('viewport');
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xffffff);
 
 const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
-// ADJUSTMENT: Camera Z=6 (zoom-out) and Y=0 (centered)
-const homePos = { x: 0, y: 0, z: 6 }; 
+// ADJUSTMENT: Moved camera out further (Z=10) for better framing
+const homePos = { x: 0, y: 0, z: 10 }; 
 camera.position.set(homePos.x, homePos.y, homePos.z);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -219,13 +219,18 @@ const necterraMaterial = new THREE.MeshStandardMaterial({
 });
 
 /* ============================
-   4. LOAD MODEL (With Rotation and Alignment Fixes)
+   4. LOAD MODEL (Final Rotation and Alignment Fixes)
 ============================ */
 const nestEggGroup = new THREE.Group();
 
-// ⭐ NEW ADJUSTMENT: Rotate the entire group to show the 3/4 perspective on load
-nestEggGroup.rotation.y = Math.PI / 4;  // Rotate 45 degrees around Y (yaw)
-nestEggGroup.rotation.x = Math.PI / 8;  // Rotate 22.5 degrees around X (pitch down)
+// ⭐ FINAL ROTATION FIX: Rotate model from its side view to upright 3/4 view
+// 1. Rotate 90 degrees around Z to point the snout along the X-axis temporarily.
+// 2. Rotate 90 degrees around X to stand it up (Y-up).
+// 3. Rotate 45 degrees around Y (yaw) for 3/4 perspective.
+// This compensates for the GLB's default orientation.
+nestEggGroup.rotation.z = Math.PI / 2;    // +90 degrees Z
+nestEggGroup.rotation.x = Math.PI / 2;    // +90 degrees X (stand upright)
+nestEggGroup.rotation.y = Math.PI / 4;    // +45 degrees Y (3/4 perspective) 
 
 scene.add(nestEggGroup);
 
@@ -240,22 +245,19 @@ loader.setDRACOLoader(dracoLoader);
 loader.load("assets/NestEggFBCR.glb", function (gltf) {
     const model = gltf.scene;
     
-    // ADJUSTMENT: Reduced scale from 1.5 to 0.9
-    model.scale.set(0.9, 0.9, 0.9);
+    // ADJUSTMENT: Reduced scale further for better fit
+    model.scale.set(0.8, 0.8, 0.8);
 
     // 1. Determine the center offset from the original model geometry
     const box = new THREE.Box3().setFromObject(model);
     const center = box.getCenter(new THREE.Vector3());
     
-    // 2. Apply the offset to the model position (moves model to 0,0,0)
+    // 2. Apply the offset to the model position (moves model center to 0,0,0)
     model.position.sub(center); 
 
     // 3. CRITICAL ALIGNMENT FIX: Apply the exact same offset to the annotations
     annotations.forEach(a => {
         a.pos.sub(center);
-        // NOTE: The Fusion 360 coordinates MUST be adjusted manually if the origin 
-        // in Fusion was not centered on the model's base, but the centering logic 
-        // here should handle it correctly.
     });
     
     // 4. Apply Necterra Material & Shadow Properties
@@ -294,7 +296,7 @@ const annotations = [
         desc: "Passive thermal regulation vent.",
         // ⚠️ Placeholder: Insert your exact Fusion 360 coordinate here
         pos: new THREE.Vector3(0.8, 1.2, 0.9), 
-        // NOTE: The camera position must match the model's new 3/4 rotation for the zoom to work!
+        // NOTE: Camera zoom positions may now need calibration with the model's new rotation
         camPos: { x: 3, y: 1.5, z: 4 }, 
         lineDir: "right"
     },
@@ -391,9 +393,6 @@ function animate() {
     renderer.render(scene, camera);
 
     annotations.forEach(a => {
-        // The position vector must be world position after rotation/translation
-        // Since the annotation points (a.pos) and the model (model.position)
-        // are children of nestEggGroup, the projection handles the group rotation.
         const screen = getScreenPos(a.pos);
         a.element.style.left = screen.x + 'px';
         a.element.style.top = screen.y + 'px';
@@ -413,16 +412,11 @@ function animate() {
 }
 
 function getScreenPos(v3) {
-    // We must project the point's World position, not its local position
     const v = v3.clone();
     
-    // We need a temporary object to get the point's world position after rotation.
-    // The annotation point is currently a Vector3, not an object in the group.
-    // However, since we apply the centering offset (sub(center)) to the Vector3 
-    // in the loader, we should treat it as a point relative to the now-centered model.
-    // If the annotations were children of the model, they would handle rotation automatically.
-    
-    // Since they are not, we will temporarily apply the group's rotation before projection:
+    // Apply the group's rotation to the annotation point before projection
+    // This is necessary because the Vector3 annotation is not a scene object,
+    // so its rotation is not automatically updated by Three.js.
     v.applyEuler(nestEggGroup.rotation);
     
     // Now project the world position
@@ -479,6 +473,10 @@ animate();
 //     const intersects = raycaster.intersectObjects(nestEggGroup.children, true); 
 //     if (intersects.length > 0) {
 //         const p = intersects[0].point;
+//         // WARNING: The coordinates returned here are local to the model.
+//         // Since the model is rotated, these will be different from the 
+//         // original Fusion 360 coordinates. Use them only if you decide 
+//         // not to use the Fusion 360 values.
 //         console.log(`pos: new THREE.Vector3(${p.x.toFixed(2)}, ${p.y.toFixed(2)}, ${p.z.toFixed(2)}),`);
 //         alert(`Coords copied to console (F12): ${p.x.toFixed(2)}, ${p.y.toFixed(2)}, ${p.z.toFixed(2)}`);
 //     }
