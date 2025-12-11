@@ -483,16 +483,16 @@ animate();
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 
-window.addEventListener("dblclick", (event) => {
+renderer.domElement.addEventListener("dblclick", (event) => {
     const rect = renderer.domElement.getBoundingClientRect();
 
-    // Mouse normalized coords relative to CANVAS, not viewport
+    // Convert click → normalized device coordinates
     mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
     mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
     raycaster.setFromCamera(mouse, camera);
 
-    // Hit-test against the entire NestEgg model hierarchy
+    // Intersect the entire NestEgg hierarchy
     const intersects = raycaster.intersectObject(nestEggGroup, true);
 
     if (intersects.length > 0) {
@@ -501,10 +501,25 @@ window.addEventListener("dblclick", (event) => {
         console.log(
             `pos: new THREE.Vector3(${p.x.toFixed(3)}, ${p.y.toFixed(3)}, ${p.z.toFixed(3)}),`
         );
+
+        // OPTIONAL: quick visual marker
+        const marker = document.createElement("div");
+        marker.style.position = "absolute";
+        marker.style.width = "10px";
+        marker.style.height = "10px";
+        marker.style.borderRadius = "50%";
+        marker.style.background = "red";
+        marker.style.left = `${event.clientX - 5}px`;
+        marker.style.top = `${event.clientY - 5}px`;
+        marker.style.pointerEvents = "none";
+        document.body.appendChild(marker);
+
+        setTimeout(() => marker.remove(), 800);
     } else {
-        console.log("No surface hit.");
+        console.log("No surface hit — try clicking directly on the model.");
     }
 });
+
 
 </script>
 </body>
