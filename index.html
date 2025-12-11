@@ -311,6 +311,21 @@ controls.rotateSpeed = 0.4;
 controls.minPolarAngle = Math.PI / 4;
 controls.maxPolarAngle = Math.PI - Math.PI / 4;
 
+  
+/* ============================
+    ANNOTATION COORDINATE HELPER
+============================ */
+    
+    function unrotate(v) {
+    return v.clone().applyEuler(
+        new THREE.Euler(
+            -nestEggGroup.rotation.x,
+            -nestEggGroup.rotation.y,
+            -nestEggGroup.rotation.z
+        )
+    );
+}
+
 /* ============================
    6. ANNOTATIONS
 ============================ */
