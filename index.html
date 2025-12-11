@@ -482,11 +482,8 @@ function animate() {
 
 function getScreenPos(v3) {
     const v = v3.clone();
-    // Apply group rotation to ensure hotspots stick to the rotating model
-    v.applyEuler(nestEggGroup.rotation);
-    v.project(camera); 
-    
-    return {
+         v.project(camera); 
+       return {
         x: (v.x * 0.5 + 0.5) * container.clientWidth,
         y: (-(v.y) * 0.5 + 0.5) * container.clientHeight,
         z: v.z
