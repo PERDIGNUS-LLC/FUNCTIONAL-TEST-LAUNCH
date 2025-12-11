@@ -477,21 +477,35 @@ window.addEventListener("resize", () => {
 animate();
 
 /* ============================
-   9. DEBUG / CALIBRATION TOOL
+   9. WORKING DEBUG COORDINATE TOOL
 ============================ */
-// const raycaster = new THREE.Raycaster();
-// const mouse = new THREE.Vector2();
-// window.addEventListener('dblclick', (event) => {
-//     mouse.x = (event.clientX / container.clientWidth) * 2 - 1;
-//     mouse.y = -(event.clientY / container.clientHeight) * 2 + 1;
-//     raycaster.setFromCamera(mouse, camera);
-//     const intersects = raycaster.intersectObjects(nestEggGroup.children, true); 
-//     if (intersects.length > 0) {
-//         const p = intersects[0].point;
-//         console.log(`pos: new THREE.Vector3(${p.x.toFixed(2)}, ${p.y.toFixed(2)}, ${p.z.toFixed(2)}),`);
-//         alert(`Coords copied to console (F12): ${p.x.toFixed(2)}, ${p.y.toFixed(2)}, ${p.z.toFixed(2)}`);
-//     }
-// });
+
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+
+window.addEventListener("dblclick", (event) => {
+    const rect = renderer.domElement.getBoundingClientRect();
+
+    // Mouse normalized coords relative to CANVAS, not viewport
+    mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+    raycaster.setFromCamera(mouse, camera);
+
+    // Hit-test against the entire NestEgg model hierarchy
+    const intersects = raycaster.intersectObject(nestEggGroup, true);
+
+    if (intersects.length > 0) {
+        const p = intersects[0].point;
+
+        console.log(
+            `pos: new THREE.Vector3(${p.x.toFixed(3)}, ${p.y.toFixed(3)}, ${p.z.toFixed(3)}),`
+        );
+    } else {
+        console.log("No surface hit.");
+    }
+});
+
 </script>
 </body>
 </html>
