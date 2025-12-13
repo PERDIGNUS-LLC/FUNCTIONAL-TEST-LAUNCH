@@ -65,7 +65,8 @@
             cursor: pointer;
             z-index: 10;
             transform: translate(-50%, -50%);
-            transition: 0.3s ease;
+            transition: 0.3s ease, opacity 0.2s;
+            opacity: 0; /* Hidden by default until verified visible */
         }
 
         .hotspot:hover {
@@ -168,7 +169,6 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xffffff);
 
 const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
-// Camera Z=10 (zoom-out) and Y=0 (centered)
 const homePos = { x: 0, y: 0, z: 10 };
 camera.position.set(homePos.x, homePos.y, homePos.z);
 
@@ -180,13 +180,10 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 container.appendChild(renderer.domElement);
 
 /* ============================
-   2. LIGHTING — CALIBRATED
+   2. LIGHTING
 ============================ */
-
-// MUCH softer ambient light
 scene.add(new THREE.AmbientLight(0xffffff, 0.4));
 
-// KEY LIGHT — reduced, moved slightly higher
 const keyLight = new THREE.DirectionalLight(0xffffff, 0.55);
 keyLight.position.set(4, 10, 6);
 keyLight.castShadow = true;
@@ -194,19 +191,16 @@ keyLight.shadow.mapSize.width = 1024;
 keyLight.shadow.mapSize.height = 1024;
 scene.add(keyLight);
 
-// FILL LIGHT — warmer but VERY soft
 const fillLight = new THREE.DirectionalLight(0xffe9c9, 0.20);
 fillLight.position.set(-6, 3, 4);
 scene.add(fillLight);
 
-// RIM LIGHT (adds silhouette definition)
 const rimLight = new THREE.DirectionalLight(0xffffff, 0.35);
 rimLight.position.set(0, 6, -6);
 scene.add(rimLight);
 
-
 /* ============================
-   3. MATERIAL GENERATION (Necterra)
+   3. MATERIAL
 ============================ */
 const cvs = document.createElement('canvas');
 cvs.width = 512; cvs.height = 512;
@@ -231,104 +225,24 @@ const necterraMaterial = new THREE.MeshStandardMaterial({
 });
 
 /* ============================
-   4. MODEL ORIENTATION (DEGREE-BASED)
+   4. MODEL & HIERARCHY
 ============================ */
-
-// Helper: convert degrees → radians
 function deg(d) { return d * Math.PI / 180; }
 
-// Group for the NestEgg
+// --- HIERARCHY ---
+// turntableGroup: Handles the slow Y-axis spin
+// nestEggGroup: Handles the specific tilt/orientation of the egg
+const turntableGroup = new THREE.Group();
+scene.add(turntableGroup);
+
 const nestEggGroup = new THREE.Group();
-    window.nestEggGroup = nestEggGroup;
+turntableGroup.add(nestEggGroup);
 
-// Default starting rotation
-// X = upright tilt
-// Y = snout angle
-// Z = CCW spin (easy to change)
-nestEggGroup.rotation.set(
-    deg(90),   // X-axis tilt
-    deg(180),   // Y-axis angle
-    deg(137.5)     // Z-axis CCW rotation — adjust this live
-);
+// Initial egg orientation
+nestEggGroup.rotation.set(deg(90), deg(180), deg(137.5));
 
-scene.add(nestEggGroup);
-
-// LIVE CALIBRATION TOOL
-// Try things like: rotate(90, 45, 120)
-window.rotate = (x, y, z) => {
-    nestEggGroup.rotation.set(deg(x), deg(y), deg(z));
-    console.log(`Rotation set to X:${x}°  Y:${y}°  Z:${z}°`);
-};
-
-
-const loader = new THREE.GLTFLoader();
-
-// Configure DRACO Loader
-const dracoLoader = new THREE.DRACOLoader();
-dracoLoader.setDecoderPath('https://unpkg.com/three@0.128.0/examples/js/libs/draco/');
-loader.setDRACOLoader(dracoLoader);
-
-// Start Load
-loader.load("assets/NestEggFBCR.glb", function (gltf) {
-    const model = gltf.scene;
-    
-    // Scale: 0.72 (as requested previously)
-    model.scale.set(0.65, 0.65, 0.65);
-
-    // 1. Center geometry
-    const box = new THREE.Box3().setFromObject(model);
-    const center = box.getCenter(new THREE.Vector3());
-    model.position.sub(center); 
-    
-    // 2. Align annotations
-    annotations.forEach(a => {
-        a.pos.sub(center);
-    });
-    
-    // 3. Apply Material
-    model.traverse((child) => {
-        if (child.isMesh) {
-            child.material = necterraMaterial; 
-            child.castShadow = true;
-            child.receiveShadow = true;
-        }
-    });
-
-    nestEggGroup.add(model);
-}, undefined, function (err) {
-    console.error("Error loading model:", err);
-});
-
-/* ============================
-   5. CONTROLS
-============================ */
-const controls = new THREE.OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true;
-controls.dampingFactor = 0.05;
-controls.enableZoom = false; 
-controls.enablePan = false;
-controls.rotateSpeed = 0.4;
-controls.minPolarAngle = Math.PI / 4;
-controls.maxPolarAngle = Math.PI - Math.PI / 4;
-
-  
-/* ============================
-    ANNOTATION COORDINATE HELPER
-============================ */
-    
-    function unrotate(v) {
-    return v.clone().applyEuler(
-        new THREE.Euler(
-            -nestEggGroup.rotation.x,
-            -nestEggGroup.rotation.y,
-            -nestEggGroup.rotation.z
-        )
-    );
-}
-
-/* ============================
-   6. ANNOTATIONS
-============================ */
+// Global variables for raycasting
+let eggMesh = null;
 const annotations = [
     {
         id: 1,
@@ -359,7 +273,8 @@ const annotations = [
         title: "Drainage Aperture",
         desc: "Allows moisture to escape the basal chamber.",
         pos: new THREE.Vector3(-0.389, -3.134, 0.363),
-        camPos: { x: 0.6, y: -2.5, z: 6 },
+        // FIXED: Lower Y to look up from bottom
+        camPos: { x: 0, y: -5.5, z: 3 },
         lineDir: "right"
     },
     {
@@ -367,7 +282,8 @@ const annotations = [
         title: "Mounting Interface",
         desc: "Integrated rear mounting surface for stable installation.",
         pos: new THREE.Vector3(0.022, -3.279, 0.772),
-        camPos: { x: -.8, y: -2.2, z: 6 },
+        // FIXED: Side/Rear view to see the interface
+        camPos: { x: -3.5, y: -4, z: 2 },
         lineDir: "right"
     },
     {
@@ -388,15 +304,67 @@ const annotations = [
     }
 ];
 
+// Attach 3D Anchors for Annotations
+// These anchors spin with the egg so coordinates are always correct
+annotations.forEach(a => {
+    const anchor = new THREE.Object3D();
+    anchor.position.copy(a.pos);
+    nestEggGroup.add(anchor);
+    a.anchorObj = anchor; // Store reference
+});
 
-// UI References
+
+// LOAD MODEL
+const loader = new THREE.GLTFLoader();
+const dracoLoader = new THREE.DRACOLoader();
+dracoLoader.setDecoderPath('https://unpkg.com/three@0.128.0/examples/js/libs/draco/');
+loader.setDRACOLoader(dracoLoader);
+
+loader.load("assets/NestEggFBCR.glb", function (gltf) {
+    const model = gltf.scene;
+    model.scale.set(0.65, 0.65, 0.65);
+
+    const box = new THREE.Box3().setFromObject(model);
+    const center = box.getCenter(new THREE.Vector3());
+    model.position.sub(center); 
+    
+    // Adjust annotation anchors to match centering
+    annotations.forEach(a => {
+        a.anchorObj.position.sub(center);
+    });
+    
+    model.traverse((child) => {
+        if (child.isMesh) {
+            child.material = necterraMaterial; 
+            child.castShadow = true;
+            child.receiveShadow = true;
+            eggMesh = child; // Save for raycasting/occlusion check
+        }
+    });
+
+    nestEggGroup.add(model);
+}, undefined, function (err) {
+    console.error("Error loading model:", err);
+});
+
+
+/* ============================
+   5. CONTROLS & UI
+============================ */
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.enableZoom = false; 
+controls.enablePan = false;
+controls.minPolarAngle = Math.PI / 4;
+controls.maxPolarAngle = Math.PI - Math.PI / 4;
+
 const uiLayer = document.getElementById('ui-layer');
 const connectorLine = document.getElementById('connector-line');
 const labelDiv = document.getElementById('active-label');
 const labelTitle = document.getElementById('label-title');
 const labelDesc = document.getElementById('label-desc');
 
-// Create DOM Hotspots
+// Create Hotspots
 annotations.forEach(a => {
     const div = document.createElement('div');
     div.className = 'hotspot';
@@ -408,14 +376,24 @@ annotations.forEach(a => {
     a.element = div;
 });
 
+
 /* ============================
-   7. INTERACTION LOGIC
+   6. INTERACTION LOGIC
 ============================ */
 let activeAnnotation = null;
 
 function activateAnnotation(data) {
     activeAnnotation = data;
 
+    // 1. Stop the Spin & Reset Orientation
+    // We rotate the turntable back to 0 so the static camera angles work perfectly
+    gsap.to(turntableGroup.rotation, {
+        duration: 1.0,
+        y: 0,
+        ease: "power2.out"
+    });
+
+    // 2. Move Camera
     gsap.to(camera.position, {
         duration: 1.5,
         x: data.camPos.x,
@@ -453,39 +431,70 @@ function resetView() {
 
 container.addEventListener('click', resetView);
 
+
 /* ============================
-   8. RENDER LOOP
+   7. RENDER LOOP (Anim + Occlusion)
 ============================ */
+const raycaster = new THREE.Raycaster();
+const tempVec = new THREE.Vector3();
+
 function animate() {
     requestAnimationFrame(animate);
     controls.update();
-    
-    // --- FLOATING ANIMATION ---
-    // Only float when NOT inspecting a specific annotation
-    if (nestEggGroup) {
-        if (!activeAnnotation) {
-            const time = performance.now() * 0.001;
-            // A slow sine wave on the Y axis
-            nestEggGroup.position.y = Math.sin(time * 0.8) * 0.15;
-        } else {
-            // While inspecting, keep it steady at 0
-            nestEggGroup.position.y = 0;
-        }
+
+    // --- ANIMATION: ROTATION & BOBBING ---
+    if (!activeAnnotation) {
+        // Slow Rotation
+        turntableGroup.rotation.y += 0.001; 
+        
+        // Gentle Bobbing
+        const time = performance.now() * 0.001;
+        nestEggGroup.position.y = Math.sin(time * 0.8) * 0.15;
+    } else {
+        // Steady when inspecting
+        nestEggGroup.position.y = 0; 
     }
-    
+
     renderer.render(scene, camera);
+    updateAnnotations();
+}
+
+function updateAnnotations() {
+    // Only run if model is loaded
+    if (!eggMesh) return;
 
     annotations.forEach(a => {
-        const screen = getScreenPos(a.pos);
+        // Get true world position from the 3D anchor
+        a.anchorObj.getWorldPosition(tempVec);
+        
+        // --- OCCLUSION CHECK ---
+        // Raycast from camera to annotation. If we hit the egg first, hide it.
+        const direction = tempVec.clone().sub(camera.position).normalize();
+        const distToAnnotation = camera.position.distanceTo(tempVec);
+        
+        raycaster.set(camera.position, direction);
+        const intersects = raycaster.intersectObject(eggMesh);
+
+        let isVisible = true;
+        if (intersects.length > 0) {
+            // If the hit point is closer than the annotation, it's blocked
+            if (intersects[0].distance < distToAnnotation - 0.2) { 
+                isVisible = false;
+            }
+        }
+
+        // --- SCREEN POSITIONING ---
+        const screen = getScreenPos(tempVec);
         a.element.style.left = screen.x + 'px';
         a.element.style.top = screen.y + 'px';
 
-        if (screen.z > 1 || screen.z < 0) {
-            a.element.style.opacity = 0;
-            a.element.style.pointerEvents = "none";
-        } else {
+        // Apply Visibility (Frustum + Occlusion)
+        if (isVisible && screen.z < 1 && screen.z > 0) {
             a.element.style.opacity = 1;
             a.element.style.pointerEvents = "auto";
+        } else {
+            a.element.style.opacity = 0;
+            a.element.style.pointerEvents = "none";
         }
     });
 
@@ -496,8 +505,8 @@ function animate() {
 
 function getScreenPos(v3) {
     const v = v3.clone();
-         v.project(camera); 
-       return {
+    v.project(camera); 
+    return {
         x: (v.x * 0.5 + 0.5) * container.clientWidth,
         y: (-(v.y) * 0.5 + 0.5) * container.clientHeight,
         z: v.z
@@ -505,7 +514,10 @@ function getScreenPos(v3) {
 }
 
 function drawConnector(data) {
-    const start = getScreenPos(data.pos);
+    // Recalculate start pos based on moving anchor
+    data.anchorObj.getWorldPosition(tempVec);
+    const start = getScreenPos(tempVec);
+    
     const elbow = 50;
     const length = 60;
 
@@ -535,51 +547,6 @@ window.addEventListener("resize", () => {
 
 animate();
 
-/* ============================
-   9. WORKING DEBUG COORDINATE TOOL
-============================ */
-
-const raycaster = new THREE.Raycaster();
-const mouse = new THREE.Vector2();
-
-renderer.domElement.addEventListener("dblclick", (event) => {
-    const rect = renderer.domElement.getBoundingClientRect();
-
-    // Convert click → normalized device coordinates
-    mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-    mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-
-    raycaster.setFromCamera(mouse, camera);
-
-    // Intersect the entire NestEgg hierarchy
-    const intersects = raycaster.intersectObject(nestEggGroup, true);
-
-    if (intersects.length > 0) {
-        const p = intersects[0].point;
-
-        console.log(
-            `pos: new THREE.Vector3(${p.x.toFixed(3)}, ${p.y.toFixed(3)}, ${p.z.toFixed(3)}),`
-        );
-
-        // OPTIONAL: quick visual marker
-        const marker = document.createElement("div");
-        marker.style.position = "absolute";
-        marker.style.width = "10px";
-        marker.style.height = "10px";
-        marker.style.borderRadius = "50%";
-        marker.style.background = "red";
-        marker.style.left = `${event.clientX - 5}px`;
-        marker.style.top = `${event.clientY - 5}px`;
-        marker.style.pointerEvents = "none";
-        document.body.appendChild(marker);
-
-        setTimeout(() => marker.remove(), 800);
-    } else {
-        console.log("No surface hit — try clicking directly on the model.");
-    }
-});
-
-
 </script>
 </body>
-</html>
+</html>vvvvvvvvvv
