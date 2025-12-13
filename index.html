@@ -56,25 +56,45 @@
             z-index: 5;
         }
 
-        .hotspot {
+        /* HOTSPOTS & LABELS */
+        .hotspot-container {
             position: absolute;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            pointer-events: auto;
+            transition: opacity 0.2s;
+        }
+
+        .hotspot-bubble {
             width: 18px; height: 18px;
             border-radius: 50%;
             border: 2px solid #333;
-            background: rgba(255,255,255,0.2);
-            cursor: pointer;
-            z-index: 10;
-            transform: translate(-50%, -50%);
-            transition: 0.3s ease, opacity 0.2s;
-            opacity: 0; /* Hidden by default until verified visible */
+            background: rgba(255,255,255,0.4);
+            transition: 0.3s ease;
         }
 
-        .hotspot:hover {
-            transform: translate(-50%, -50%) scale(1.3);
+        .hotspot-label {
+            margin-left: 8px;
+            font-family: 'Roboto', sans-serif;
+            font-size: 12px;
+            font-weight: 700;
+            color: #333;
+            background: rgba(255,255,255,0.8);
+            padding: 2px 6px;
+            border-radius: 4px;
+            white-space: nowrap;
+            pointer-events: none; /* Let clicks pass through text to the container */
+        }
+
+        .hotspot-container:hover .hotspot-bubble {
             background-color: #333;
-            border-color: #333;
+            transform: scale(1.3);
         }
 
+        /* ACTIVE ANNOTATION BOX */
         .label-text {
             position: absolute;
             font-family: 'Times New Roman', serif;
@@ -84,7 +104,7 @@
             opacity: 0;
             transition: opacity 0.5s;
             pointer-events: none;
-            z-index: 10;
+            z-index: 20;
             text-decoration: underline;
             text-underline-offset: 4px;
         }
@@ -229,9 +249,9 @@ const necterraMaterial = new THREE.MeshStandardMaterial({
 ============================ */
 function deg(d) { return d * Math.PI / 180; }
 
-// --- HIERARCHY ---
-// turntableGroup: Handles the slow Y-axis spin
-// nestEggGroup: Handles the specific tilt/orientation of the egg
+// GROUP STRUCTURE:
+// turntableGroup -> Spins slowly
+// nestEggGroup   -> Holds the specific Tilt/Angle of the egg
 const turntableGroup = new THREE.Group();
 scene.add(turntableGroup);
 
@@ -241,12 +261,50 @@ turntableGroup.add(nestEggGroup);
 // Initial egg orientation
 nestEggGroup.rotation.set(deg(90), deg(180), deg(137.5));
 
-// Global variables for raycasting
-let eggMesh = null;
+let eggMesh = null; // Used for occlusion raycasting
+
+const loader = new THREE.GLTFLoader();
+const dracoLoader = new THREE.DRACOLoader();
+dracoLoader.setDecoderPath('https://unpkg.com/three@0.128.0/examples/js/libs/draco/');
+loader.setDRACOLoader(dracoLoader);
+
+loader.load("assets/NestEggFBCR.glb", function (gltf) {
+    const model = gltf.scene;
+    model.scale.set(0.65, 0.65, 0.65);
+
+    // Center the geometry internally
+    const box = new THREE.Box3().setFromObject(model);
+    const center = box.getCenter(new THREE.Vector3());
+    model.position.sub(center); 
+    
+    // Material Apply
+    model.traverse((child) => {
+        if (child.isMesh) {
+            child.material = necterraMaterial; 
+            child.castShadow = true;
+            child.receiveShadow = true;
+            eggMesh = child; 
+        }
+    });
+
+    nestEggGroup.add(model);
+    
+    // IMPORTANT: Setup Annotations AFTER model is ready
+    // This ensures they attach to the group correctly
+    setupAnnotations(center);
+
+}, undefined, function (err) {
+    console.error("Error loading model:", err);
+});
+
+
+/* ============================
+   5. ANNOTATION DATA
+============================ */
 const annotations = [
     {
         id: 1,
-        title: "Ventilation Aperture",
+        title: "Ventilation",
         desc: "Passive thermal regulation vent improving internal microclimate stability.",
         pos: new THREE.Vector3(-0.922, 2.144, 0.993),
         camPos: { x: 3, y: 2, z: 5 },
@@ -254,7 +312,7 @@ const annotations = [
     },
     {
         id: 2,
-        title: "Modular Entrance Insert",
+        title: "Entrance Insert",
         desc: "Interchangeable species-specific modular entrance geometry.",
         pos: new THREE.Vector3(1.561, 1.056, 1.514),
         camPos: { x: 4, y: 1.5, z: 5 },
@@ -262,7 +320,7 @@ const annotations = [
     },
     {
         id: 3,
-        title: "Shell Separation Joint",
+        title: "Shell Joint",
         desc: "Precision interface between upper and lower hemispheres.",
         pos: new THREE.Vector3(-2.292, -0.591, 0.994),
         camPos: { x: -4, y: 0.5, z: 5 },
@@ -270,19 +328,19 @@ const annotations = [
     },
     {
         id: 4,
-        title: "Drainage Aperture",
+        title: "Drainage",
         desc: "Allows moisture to escape the basal chamber.",
         pos: new THREE.Vector3(-0.389, -3.134, 0.363),
-        // FIXED: Lower Y to look up from bottom
-        camPos: { x: 0, y: -5.5, z: 3 },
+        // UPDATED ANGLE: Low looking up
+        camPos: { x: 0, y: -6.0, z: 3 },
         lineDir: "right"
     },
     {
         id: 5,
-        title: "Mounting Interface",
+        title: "Mounting",
         desc: "Integrated rear mounting surface for stable installation.",
         pos: new THREE.Vector3(0.022, -3.279, 0.772),
-        // FIXED: Side/Rear view to see the interface
+        // UPDATED ANGLE: Side/Rear
         camPos: { x: -3.5, y: -4, z: 2 },
         lineDir: "right"
     },
@@ -304,52 +362,61 @@ const annotations = [
     }
 ];
 
-// Attach 3D Anchors for Annotations
-// These anchors spin with the egg so coordinates are always correct
-annotations.forEach(a => {
-    const anchor = new THREE.Object3D();
-    anchor.position.copy(a.pos);
-    nestEggGroup.add(anchor);
-    a.anchorObj = anchor; // Store reference
-});
-
-
-// LOAD MODEL
-const loader = new THREE.GLTFLoader();
-const dracoLoader = new THREE.DRACOLoader();
-dracoLoader.setDecoderPath('https://unpkg.com/three@0.128.0/examples/js/libs/draco/');
-loader.setDRACOLoader(dracoLoader);
-
-loader.load("assets/NestEggFBCR.glb", function (gltf) {
-    const model = gltf.scene;
-    model.scale.set(0.65, 0.65, 0.65);
-
-    const box = new THREE.Box3().setFromObject(model);
-    const center = box.getCenter(new THREE.Vector3());
-    model.position.sub(center); 
-    
-    // Adjust annotation anchors to match centering
+// Helper to create the 3D anchors that spin with the egg
+function setupAnnotations(centerOffset) {
     annotations.forEach(a => {
-        a.anchorObj.position.sub(center);
-    });
-    
-    model.traverse((child) => {
-        if (child.isMesh) {
-            child.material = necterraMaterial; 
-            child.castShadow = true;
-            child.receiveShadow = true;
-            eggMesh = child; // Save for raycasting/occlusion check
-        }
-    });
+        // Create an invisible anchor object
+        const anchor = new THREE.Object3D();
+        
+        // Use the Original Coordinates. 
+        // Note: These were likely World Coordinates. 
+        // To make them stick to the child group, we place them at the World Position, 
+        // then 'attach' them to the group.
+        
+        // 1. Account for centering offset (since we shifted the model mesh)
+        const adjustedPos = a.pos.clone().sub(centerOffset);
+        anchor.position.copy(adjustedPos);
+        
+        // 2. Add directly to nestEggGroup. 
+        // Since we are adding them to the group that is ALREADY rotated (90,180,137),
+        // we essentially lock them into that coordinate space.
+        // Because the User's coordinates were derived visually from this rotation, 
+        // we can just add them as children if we reset the rotation briefly or use inverse.
+        // HOWEVER, simplest method: Add to scene, position, then attach.
+        
+        scene.add(anchor); // Temporarily add to scene at world 0,0,0
+        anchor.position.copy(a.pos); // Move to where it SHOULD be visually
+        nestEggGroup.attach(anchor); // Transfer parent to nestEggGroup (keeps world pos)
+        
+        a.anchorObj = anchor; // Save reference
 
-    nestEggGroup.add(model);
-}, undefined, function (err) {
-    console.error("Error loading model:", err);
-});
+        // Create DOM Element
+        const containerDiv = document.createElement('div');
+        containerDiv.className = 'hotspot-container';
+        
+        const bubble = document.createElement('div');
+        bubble.className = 'hotspot-bubble';
+        
+        const label = document.createElement('div');
+        label.className = 'hotspot-label';
+        label.innerText = a.title; // Show Title always
+        
+        containerDiv.appendChild(bubble);
+        containerDiv.appendChild(label);
+        
+        containerDiv.addEventListener('click', e => {
+            e.stopPropagation();
+            activateAnnotation(a);
+        });
+        
+        container.appendChild(containerDiv);
+        a.element = containerDiv;
+    });
+}
 
 
 /* ============================
-   5. CONTROLS & UI
+   6. CONTROLS & UI
 ============================ */
 const controls = new THREE.OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
@@ -358,42 +425,28 @@ controls.enablePan = false;
 controls.minPolarAngle = Math.PI / 4;
 controls.maxPolarAngle = Math.PI - Math.PI / 4;
 
-const uiLayer = document.getElementById('ui-layer');
 const connectorLine = document.getElementById('connector-line');
 const labelDiv = document.getElementById('active-label');
 const labelTitle = document.getElementById('label-title');
 const labelDesc = document.getElementById('label-desc');
 
-// Create Hotspots
-annotations.forEach(a => {
-    const div = document.createElement('div');
-    div.className = 'hotspot';
-    div.addEventListener('click', e => {
-        e.stopPropagation();
-        activateAnnotation(a);
-    });
-    container.appendChild(div);
-    a.element = div;
-});
-
-
 /* ============================
-   6. INTERACTION LOGIC
+   7. INTERACTION
 ============================ */
 let activeAnnotation = null;
 
 function activateAnnotation(data) {
     activeAnnotation = data;
 
-    // 1. Stop the Spin & Reset Orientation
-    // We rotate the turntable back to 0 so the static camera angles work perfectly
+    // Stop rotation by Tweening turntable to nearest "Clean" angle or just pause?
+    // User wants to see the specific camera angle. 
+    // We must reset turntable Y to 0 so the camera angles (which are static) make sense.
     gsap.to(turntableGroup.rotation, {
         duration: 1.0,
         y: 0,
         ease: "power2.out"
     });
 
-    // 2. Move Camera
     gsap.to(camera.position, {
         duration: 1.5,
         x: data.camPos.x,
@@ -405,6 +458,9 @@ function activateAnnotation(data) {
     labelTitle.innerText = data.title;
     labelDesc.innerText = data.desc;
 
+    // Hide the little floating label, show the big box
+    data.element.querySelector('.hotspot-label').style.opacity = 0;
+
     setTimeout(() => {
         if (activeAnnotation === data) {
             labelDiv.style.opacity = 1;
@@ -415,6 +471,12 @@ function activateAnnotation(data) {
 
 function resetView() {
     if (!activeAnnotation) return;
+    
+    // Restore the little label
+    if(activeAnnotation.element) {
+        activeAnnotation.element.querySelector('.hotspot-label').style.opacity = 1;
+    }
+
     activeAnnotation = null;
 
     labelDiv.style.opacity = 0;
@@ -433,7 +495,7 @@ container.addEventListener('click', resetView);
 
 
 /* ============================
-   7. RENDER LOOP (Anim + Occlusion)
+   8. RENDER LOOP (Anim + Occlusion)
 ============================ */
 const raycaster = new THREE.Raycaster();
 const tempVec = new THREE.Vector3();
@@ -442,16 +504,14 @@ function animate() {
     requestAnimationFrame(animate);
     controls.update();
 
-    // --- ANIMATION: ROTATION & BOBBING ---
+    // --- ROTATION & BOBBING ---
     if (!activeAnnotation) {
-        // Slow Rotation
+        // Spin
         turntableGroup.rotation.y += 0.001; 
-        
-        // Gentle Bobbing
+        // Bob
         const time = performance.now() * 0.001;
         nestEggGroup.position.y = Math.sin(time * 0.8) * 0.15;
     } else {
-        // Steady when inspecting
         nestEggGroup.position.y = 0; 
     }
 
@@ -460,15 +520,15 @@ function animate() {
 }
 
 function updateAnnotations() {
-    // Only run if model is loaded
     if (!eggMesh) return;
 
     annotations.forEach(a => {
-        // Get true world position from the 3D anchor
+        if(!a.anchorObj) return;
+
+        // Get true world position
         a.anchorObj.getWorldPosition(tempVec);
         
         // --- OCCLUSION CHECK ---
-        // Raycast from camera to annotation. If we hit the egg first, hide it.
         const direction = tempVec.clone().sub(camera.position).normalize();
         const distToAnnotation = camera.position.distanceTo(tempVec);
         
@@ -477,18 +537,18 @@ function updateAnnotations() {
 
         let isVisible = true;
         if (intersects.length > 0) {
-            // If the hit point is closer than the annotation, it's blocked
+            // Check if obstruction is closer than the point
             if (intersects[0].distance < distToAnnotation - 0.2) { 
                 isVisible = false;
             }
         }
 
-        // --- SCREEN POSITIONING ---
+        // --- SCREEN POSITION ---
         const screen = getScreenPos(tempVec);
         a.element.style.left = screen.x + 'px';
         a.element.style.top = screen.y + 'px';
 
-        // Apply Visibility (Frustum + Occlusion)
+        // Visibility Logic
         if (isVisible && screen.z < 1 && screen.z > 0) {
             a.element.style.opacity = 1;
             a.element.style.pointerEvents = "auto";
@@ -514,7 +574,6 @@ function getScreenPos(v3) {
 }
 
 function drawConnector(data) {
-    // Recalculate start pos based on moving anchor
     data.anchorObj.getWorldPosition(tempVec);
     const start = getScreenPos(tempVec);
     
@@ -549,4 +608,4 @@ animate();
 
 </script>
 </body>
-</html>vvvvvvvvvv
+</html>
