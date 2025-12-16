@@ -56,45 +56,52 @@
             z-index: 5;
         }
 
-        /* HOTSPOTS & LABELS */
-        .hotspot-container {
+        /* SVG LINES */
+        polyline {
+            fill: none;
+            stroke: #333;
+            stroke-width: 1;
+            vector-effect: non-scaling-stroke;
+        }
+
+        /* DOTS (The anchor points on the model) */
+        .hotspot-dot {
             position: absolute;
-            transform: translate(-50%, -50%);
-            z-index: 10;
-            display: flex;
-            align-items: center;
-            cursor: pointer;
-            pointer-events: auto;
-            transition: opacity 0.2s;
-        }
-
-        .hotspot-bubble {
-            width: 18px; height: 18px;
+            width: 12px; height: 12px;
             border-radius: 50%;
-            border: 2px solid #333;
-            background: rgba(255,255,255,0.4);
-            transition: 0.3s ease;
+            border: 1.5px solid #333;
+            background: rgba(255,255,255,0.5);
+            transform: translate(-50%, -50%);
+            cursor: pointer;
+            z-index: 10;
+            transition: transform 0.2s, background-color 0.2s;
+            pointer-events: auto;
         }
 
-        .hotspot-label {
-            margin-left: 8px;
-            font-family: 'Roboto', sans-serif;
-            font-size: 12px;
-            font-weight: 700;
-            color: #333;
-            background: rgba(255,255,255,0.8);
-            padding: 2px 6px;
-            border-radius: 4px;
-            white-space: nowrap;
-            pointer-events: none; /* Let clicks pass through text to the container */
-        }
-
-        .hotspot-container:hover .hotspot-bubble {
+        .hotspot-dot:hover {
+            transform: translate(-50%, -50%) scale(1.5);
             background-color: #333;
-            transform: scale(1.3);
         }
 
-        /* ACTIVE ANNOTATION BOX */
+        /* FLOATING LABELS (Engineering Style) */
+        .floating-label {
+            position: absolute;
+            font-family: 'Roboto', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            color: #000;
+            /* Underline style like the engineering drawing */
+            border-bottom: 1px solid #333;
+            padding-bottom: 2px;
+            white-space: nowrap;
+            pointer-events: none;
+            z-index: 6;
+            transition: opacity 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* DETAILED INFO BOX (Appears on Click) */
         .label-text {
             position: absolute;
             font-family: 'Times New Roman', serif;
@@ -151,8 +158,7 @@
 
 <div id="viewport">
     <svg id="ui-layer">
-        <polyline id="connector-line" points=""
-                  style="fill:none;stroke:black;stroke-width:1.5;opacity:0;transition:opacity 0.4s" />
+        <polyline id="active-connector" points="" style="stroke-width:2; opacity:0" />
     </svg>
 
     <div id="active-label" class="label-text">
@@ -250,8 +256,6 @@ const necterraMaterial = new THREE.MeshStandardMaterial({
 function deg(d) { return d * Math.PI / 180; }
 
 // GROUP STRUCTURE:
-// turntableGroup -> Spins slowly
-// nestEggGroup   -> Holds the specific Tilt/Angle of the egg
 const turntableGroup = new THREE.Group();
 scene.add(turntableGroup);
 
@@ -289,8 +293,7 @@ loader.load("assets/NestEggFBCR.glb", function (gltf) {
 
     nestEggGroup.add(model);
     
-    // IMPORTANT: Setup Annotations AFTER model is ready
-    // This ensures they attach to the group correctly
+    // Setup Annotations AFTER model is ready
     setupAnnotations(center);
 
 }, undefined, function (err) {
@@ -307,110 +310,89 @@ const annotations = [
         title: "Ventilation",
         desc: "Passive thermal regulation vent improving internal microclimate stability.",
         pos: new THREE.Vector3(-0.922, 2.144, 0.993),
-        camPos: { x: 3, y: 2, z: 5 },
-        lineDir: "right"
+        camPos: { x: 3, y: 2, z: 5 }
     },
     {
         id: 2,
         title: "Entrance Insert",
         desc: "Interchangeable species-specific modular entrance geometry.",
         pos: new THREE.Vector3(1.561, 1.056, 1.514),
-        camPos: { x: 4, y: 1.5, z: 5 },
-        lineDir: "right"
+        camPos: { x: 4, y: 1.5, z: 5 }
     },
     {
         id: 3,
         title: "Shell Joint",
         desc: "Precision interface between upper and lower hemispheres.",
         pos: new THREE.Vector3(-2.292, -0.591, 0.994),
-        camPos: { x: -4, y: 0.5, z: 5 },
-        lineDir: "left"
+        camPos: { x: -4, y: 0.5, z: 5 }
     },
     {
         id: 4,
         title: "Drainage",
         desc: "Allows moisture to escape the basal chamber.",
         pos: new THREE.Vector3(-0.389, -3.134, 0.363),
-        // UPDATED ANGLE: Low looking up
-        camPos: { x: 0, y: -6.0, z: 3 },
-        lineDir: "right"
+        camPos: { x: 0, y: -6.0, z: 3 }
     },
     {
         id: 5,
         title: "Mounting",
         desc: "Integrated rear mounting surface for stable installation.",
         pos: new THREE.Vector3(0.022, -3.279, 0.772),
-        // UPDATED ANGLE: Side/Rear
-        camPos: { x: -3.5, y: -4, z: 2 },
-        lineDir: "right"
+        camPos: { x: -3.5, y: -4, z: 2 }
     },
     {
         id: 6,
         title: "Cling Ridges",
         desc: "Exterior gripping geometry for secure wall or tree mounting.",
         pos: new THREE.Vector3(2.279, 0.131, 0.701),
-        camPos: { x: 4, y: 1, z: 5 },
-        lineDir: "right"
+        camPos: { x: 4, y: 1, z: 5 }
     },
     {
         id: 7,
         title: "Gutter Channel",
         desc: "Rain diverter channel preventing entrance flooding.",
         pos: new THREE.Vector3(0.054, -0.076, 2.412),
-        camPos: { x: 0.5, y: 1.5, z: 6 },
-        lineDir: "right"
+        camPos: { x: 0.5, y: 1.5, z: 6 }
     }
 ];
 
-// Helper to create the 3D anchors that spin with the egg
+// Helper to create the 3D anchors, DOM Elements, and SVG Lines
+const uiLayer = document.getElementById('ui-layer');
+
 function setupAnnotations(centerOffset) {
     annotations.forEach(a => {
-        // Create an invisible anchor object
+        // 1. Create 3D Anchor (Spins with Egg)
         const anchor = new THREE.Object3D();
-        
-        // Use the Original Coordinates. 
-        // Note: These were likely World Coordinates. 
-        // To make them stick to the child group, we place them at the World Position, 
-        // then 'attach' them to the group.
-        
-        // 1. Account for centering offset (since we shifted the model mesh)
         const adjustedPos = a.pos.clone().sub(centerOffset);
-        anchor.position.copy(adjustedPos);
         
-        // 2. Add directly to nestEggGroup. 
-        // Since we are adding them to the group that is ALREADY rotated (90,180,137),
-        // we essentially lock them into that coordinate space.
-        // Because the User's coordinates were derived visually from this rotation, 
-        // we can just add them as children if we reset the rotation briefly or use inverse.
-        // HOWEVER, simplest method: Add to scene, position, then attach.
-        
-        scene.add(anchor); // Temporarily add to scene at world 0,0,0
-        anchor.position.copy(a.pos); // Move to where it SHOULD be visually
-        nestEggGroup.attach(anchor); // Transfer parent to nestEggGroup (keeps world pos)
-        
-        a.anchorObj = anchor; // Save reference
+        scene.add(anchor); 
+        anchor.position.copy(adjustedPos); 
+        nestEggGroup.attach(anchor); 
+        a.anchorObj = anchor; 
 
-        // Create DOM Element
-        const containerDiv = document.createElement('div');
-        containerDiv.className = 'hotspot-container';
-        
-        const bubble = document.createElement('div');
-        bubble.className = 'hotspot-bubble';
-        
-        const label = document.createElement('div');
-        label.className = 'hotspot-label';
-        label.innerText = a.title; // Show Title always
-        
-        containerDiv.appendChild(bubble);
-        containerDiv.appendChild(label);
-        
-        containerDiv.addEventListener('click', e => {
+        // 2. Create Dot (The circle on the egg)
+        const dot = document.createElement('div');
+        dot.className = 'hotspot-dot';
+        dot.addEventListener('click', e => {
             e.stopPropagation();
             activateAnnotation(a);
         });
-        
-        container.appendChild(containerDiv);
-        a.element = containerDiv;
+        container.appendChild(dot);
+        a.dotElement = dot;
+
+        // 3. Create Floating Label (The text off to the side)
+        const label = document.createElement('div');
+        label.className = 'floating-label';
+        label.innerText = a.title;
+        container.appendChild(label);
+        a.labelElement = label;
+
+        // 4. Create SVG Leader Line
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+        // Initial style
+        line.style.opacity = 0; 
+        uiLayer.appendChild(line);
+        a.lineElement = line;
     });
 }
 
@@ -425,7 +407,8 @@ controls.enablePan = false;
 controls.minPolarAngle = Math.PI / 4;
 controls.maxPolarAngle = Math.PI - Math.PI / 4;
 
-const connectorLine = document.getElementById('connector-line');
+// References for the "Active" detail view
+const activeConnector = document.getElementById('active-connector');
 const labelDiv = document.getElementById('active-label');
 const labelTitle = document.getElementById('label-title');
 const labelDesc = document.getElementById('label-desc');
@@ -438,15 +421,14 @@ let activeAnnotation = null;
 function activateAnnotation(data) {
     activeAnnotation = data;
 
-    // Stop rotation by Tweening turntable to nearest "Clean" angle or just pause?
-    // User wants to see the specific camera angle. 
-    // We must reset turntable Y to 0 so the camera angles (which are static) make sense.
+    // Pause rotation
     gsap.to(turntableGroup.rotation, {
         duration: 1.0,
         y: 0,
         ease: "power2.out"
     });
 
+    // Move Camera
     gsap.to(camera.position, {
         duration: 1.5,
         x: data.camPos.x,
@@ -455,32 +437,25 @@ function activateAnnotation(data) {
         ease: "power2.inOut"
     });
 
+    // Populate Detail Box
     labelTitle.innerText = data.title;
     labelDesc.innerText = data.desc;
 
-    // Hide the little floating label, show the big box
-    data.element.querySelector('.hotspot-label').style.opacity = 0;
-
+    // Show Detail Box after delay
     setTimeout(() => {
         if (activeAnnotation === data) {
             labelDiv.style.opacity = 1;
-            connectorLine.style.opacity = 1;
+            activeConnector.style.opacity = 1;
         }
     }, 800);
 }
 
 function resetView() {
     if (!activeAnnotation) return;
-    
-    // Restore the little label
-    if(activeAnnotation.element) {
-        activeAnnotation.element.querySelector('.hotspot-label').style.opacity = 1;
-    }
-
     activeAnnotation = null;
 
     labelDiv.style.opacity = 0;
-    connectorLine.style.opacity = 0;
+    activeConnector.style.opacity = 0;
 
     gsap.to(camera.position, {
         duration: 1.5,
@@ -495,7 +470,7 @@ container.addEventListener('click', resetView);
 
 
 /* ============================
-   8. RENDER LOOP (Anim + Occlusion)
+   8. RENDER LOOP (Anim + Occlusion + Leader Lines)
 ============================ */
 const raycaster = new THREE.Raycaster();
 const tempVec = new THREE.Vector3();
@@ -506,9 +481,7 @@ function animate() {
 
     // --- ROTATION & BOBBING ---
     if (!activeAnnotation) {
-        // Spin
         turntableGroup.rotation.y += 0.001; 
-        // Bob
         const time = performance.now() * 0.001;
         nestEggGroup.position.y = Math.sin(time * 0.8) * 0.15;
     } else {
@@ -522,13 +495,15 @@ function animate() {
 function updateAnnotations() {
     if (!eggMesh) return;
 
+    const centerX = container.clientWidth / 2;
+
     annotations.forEach(a => {
         if(!a.anchorObj) return;
 
-        // Get true world position
+        // --- 1. Get 3D Position ---
         a.anchorObj.getWorldPosition(tempVec);
         
-        // --- OCCLUSION CHECK ---
+        // --- 2. Occlusion Check ---
         const direction = tempVec.clone().sub(camera.position).normalize();
         const distToAnnotation = camera.position.distanceTo(tempVec);
         
@@ -537,29 +512,67 @@ function updateAnnotations() {
 
         let isVisible = true;
         if (intersects.length > 0) {
-            // Check if obstruction is closer than the point
+            // Tolerate small margin so dots don't flicker on edges
             if (intersects[0].distance < distToAnnotation - 0.2) { 
                 isVisible = false;
             }
         }
 
-        // --- SCREEN POSITION ---
-        const screen = getScreenPos(tempVec);
-        a.element.style.left = screen.x + 'px';
-        a.element.style.top = screen.y + 'px';
+        // If Active Annotation exists, hide all floating labels to reduce clutter
+        if (activeAnnotation) isVisible = false;
 
-        // Visibility Logic
+        // --- 3. Update DOM Elements ---
+        const screen = getScreenPos(tempVec);
+        
+        // Update Dot Position
+        a.dotElement.style.left = screen.x + 'px';
+        a.dotElement.style.top = screen.y + 'px';
+
+        // Visibility Toggle
         if (isVisible && screen.z < 1 && screen.z > 0) {
-            a.element.style.opacity = 1;
-            a.element.style.pointerEvents = "auto";
+            a.dotElement.style.opacity = 1;
+            a.dotElement.style.pointerEvents = "auto";
+            a.labelElement.style.opacity = 1;
+            a.lineElement.style.opacity = 1;
         } else {
-            a.element.style.opacity = 0;
-            a.element.style.pointerEvents = "none";
+            a.dotElement.style.opacity = 0;
+            a.dotElement.style.pointerEvents = "none";
+            a.labelElement.style.opacity = 0;
+            a.lineElement.style.opacity = 0;
+            return; // Skip calculating lines if invisible
         }
+
+        // --- 4. Engineering Drawing Logic (Left/Right Split) ---
+        // Determine side based on screen position
+        const isRight = screen.x > centerX;
+        
+        // Constants for the leader line
+        const xOffset = isRight ? 80 : -80; // Distance of text from dot
+        const yOffset = -40; // Lift text slightly up
+        
+        const labelX = screen.x + xOffset;
+        const labelY = screen.y + yOffset;
+
+        // Position Label
+        a.labelElement.style.left = labelX + 'px';
+        a.labelElement.style.top = labelY + 'px';
+        
+        // Adjust Label CSS to align text properly
+        // If on right, text aligns left. If on left, text aligns right (towards egg).
+        a.labelElement.style.transform = isRight ? "translate(0, -50%)" : "translate(-100%, -50%)";
+
+        // Draw Line (Dot -> Label)
+        // We calculate the end point of the line. 
+        // If right side, line ends at left of text. If left side, line ends at right of text.
+        const lineEndX = labelX;
+        const lineEndY = labelY;
+
+        a.lineElement.setAttribute("points", `${screen.x},${screen.y} ${lineEndX},${lineEndY}`);
     });
 
-    if (activeAnnotation && connectorLine.style.opacity > 0) {
-        drawConnector(activeAnnotation);
+    // --- 5. Update Active Connector (The Big One) ---
+    if (activeAnnotation && activeConnector.style.opacity > 0) {
+        drawActiveConnector(activeAnnotation);
     }
 }
 
@@ -573,26 +586,29 @@ function getScreenPos(v3) {
     };
 }
 
-function drawConnector(data) {
+function drawActiveConnector(data) {
     data.anchorObj.getWorldPosition(tempVec);
     const start = getScreenPos(tempVec);
     
+    // Aesthetic "Elbow" connector for the detail view
     const elbow = 50;
     const length = 60;
-
     const p1 = { x: start.x, y: start.y };
-    const p2 = { x: start.x, y: start.y - elbow };
+    const p2 = { x: start.x, y: start.y - elbow }; // Go Up
+    
+    // Determine direction for detail box
+    const isRight = start.x > container.clientWidth / 2;
     const p3 = {
-        x: data.lineDir === "right" ? start.x + length : start.x - length,
+        x: isRight ? start.x + length : start.x - length,
         y: p2.y
     };
 
-    connectorLine.setAttribute("points", `${p1.x},${p1.y} ${p2.x},${p2.y} ${p3.x},${p3.y}`);
+    activeConnector.setAttribute("points", `${p1.x},${p1.y} ${p2.x},${p2.y} ${p3.x},${p3.y}`);
 
     const textPad = 10;
     const offsetW = labelDiv.offsetWidth;
     
-    labelDiv.style.left = data.lineDir === "right" 
+    labelDiv.style.left = isRight
         ? (p3.x + textPad) + "px" 
         : (p3.x - offsetW - textPad) + "px";
     labelDiv.style.top = (p3.y - 10) + "px";
