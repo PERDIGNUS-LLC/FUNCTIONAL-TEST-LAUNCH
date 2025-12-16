@@ -329,7 +329,7 @@ const annotations = [
     {
         id: 4,
         title: "Drainage",
-        desc: "Allows moisture to escape the basal chamber.",
+        desc: "Allows moisture to escape the basal chamber via an internal plenum system.",
         pos: new THREE.Vector3(-0.389, -3.134, 0.363),
         camPos: { x: 0, y: -6.0, z: 3 }
     },
@@ -343,7 +343,7 @@ const annotations = [
     {
         id: 6,
         title: "Cling Ridges",
-        desc: "Exterior gripping geometry for secure wall or tree mounting.",
+        desc: "Exterior gripping geometry for allowing birds the functionality of texture without the inherent predatory risks of a perch.",
         pos: new THREE.Vector3(2.279, 0.131, 0.701),
         camPos: { x: 4, y: 1, z: 5 }
     },
@@ -483,7 +483,7 @@ function animate() {
     if (!activeAnnotation) {
         turntableGroup.rotation.y += 0.001; 
         const time = performance.now() * 0.001;
-        nestEggGroup.position.y = Math.sin(time * 0.8) * 0.15;
+        nestEggGroup.position.y = Math.sin(time * 1.2) * 0.25;
     } else {
         nestEggGroup.position.y = 0; 
     }
