@@ -726,30 +726,32 @@ document.addEventListener('DOMContentLoaded', () => {
   const sound = document.getElementById('chirp-sound');
   const countDisplay = document.getElementById('chirp-count');
 
-  // We use a unique namespace so your counter is unique to your site
-  // The service is: countapi.xyz
-  const namespace = 'terradignus.com';
-  const key = 'chirps_v1';
+  // Using 'counterapi.dev' which is more stable than countapi.xyz
+  // Namespace: 'terradignus', Key: 'chirps_main'
+  const apiUrl = 'https://api.counterapi.dev/v1/terradignus/chirps_main';
 
-  // 1. On Page Load: Fetch the current global count
-  fetch(`https://api.countapi.xyz/get/${namespace}/${key}`)
+  // 1. On Page Load: Try to get the real global number
+  fetch(apiUrl)
     .then(res => res.json())
     .then(res => {
-      updateDisplay(res.value);
+      // If the API works, show the global count
+      updateDisplay(res.count);
     })
     .catch(err => {
-      // If the counter doesn't exist yet, it will return an error, 
-      // so we default to 0. It will be created on the first click.
-      console.log('Counter starting at 0');
-      updateDisplay(0);
+      // If API fails (blocked/down), check LocalStorage or default to 0
+      console.log('Global counter unavailable, switching to local.');
+      const localCount = localStorage.getItem('localChirps') || 0;
+      updateDisplay(localCount);
     });
 
-  // Helper function to format the text
+  // Helper function to update the text
   function updateDisplay(val) {
-    countDisplay.innerText = val + (val === 1 ? " chirp" : " chirps");
+    // Ensure we are working with a number
+    const num = parseInt(val) || 0;
+    countDisplay.innerText = num + (num === 1 ? " chirp" : " chirps");
   }
 
-  // 2. On Click: Increment the global count
+  // 2. On Click: Increment
   btn.addEventListener('click', () => {
     
     // Play Sound
@@ -761,18 +763,28 @@ document.addEventListener('DOMContentLoaded', () => {
     // Add Animation
     btn.classList.add('chirping');
 
-    // Hit the API to add +1 to the global database
-    fetch(`https://api.countapi.xyz/hit/${namespace}/${key}`)
-      .then(res => res.json())
-      .then(res => {
-        updateDisplay(res.value);
-      })
-      .catch(err => console.error("Could not reach counter service"));
-
     // Remove Animation after 1s
     setTimeout(() => {
       btn.classList.remove('chirping');
     }, 1000); 
+
+    // ATTEMPT 1: Global Cloud Update
+    fetch(apiUrl + '/up')
+      .then(res => res.json())
+      .then(res => {
+        // Success! Show the new global number
+        updateDisplay(res.count);
+      })
+      .catch(err => {
+        // ATTEMPT 2: Fallback (Offline Mode)
+        // If the internet/API fails, just increment locally so the user feels it work.
+        console.log('API failed, incrementing locally');
+        let current = parseInt(countDisplay.innerText) || 0;
+        let newVal = current + 1;
+        
+        updateDisplay(newVal);
+        localStorage.setItem('localChirps', newVal);
+      });
   });
 });
 </script>
