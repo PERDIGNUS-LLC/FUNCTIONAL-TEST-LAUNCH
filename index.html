@@ -720,37 +720,63 @@ window.addEventListener("resize", () => {
 animate();
 
 </script>
-    <script>
+<script>
 document.addEventListener('DOMContentLoaded', () => {
   const btn = document.getElementById('chirp-btn');
   const sound = document.getElementById('chirp-sound');
   const countDisplay = document.getElementById('chirp-count');
-  
-  // Local counter (Resets on refresh). 
-  // To make this permanent later, we can connect a database service.
-  let chirps = 0; 
 
+  // We use a unique namespace so your counter is unique to your site
+  // The service is: countapi.xyz
+  const namespace = 'terradignus.com';
+  const key = 'chirps_v1';
+
+  // 1. On Page Load: Fetch the current global count
+  fetch(`https://api.countapi.xyz/get/${namespace}/${key}`)
+    .then(res => res.json())
+    .then(res => {
+      updateDisplay(res.value);
+    })
+    .catch(err => {
+      // If the counter doesn't exist yet, it will return an error, 
+      // so we default to 0. It will be created on the first click.
+      console.log('Counter starting at 0');
+      updateDisplay(0);
+    });
+
+  // Helper function to format the text
+  function updateDisplay(val) {
+    countDisplay.innerText = val + (val === 1 ? " chirp" : " chirps");
+  }
+
+  // 2. On Click: Increment the global count
   btn.addEventListener('click', () => {
-    // 1. Play Sound
+    
+    // Play Sound
     if (sound) {
-      sound.currentTime = 0; // Rewind to start so rapid clicks work
+      sound.currentTime = 0;
       sound.play().catch(e => console.log("Audio interaction needed first"));
     }
 
-    // 2. Add Animation Class (Triggers CSS keyframes)
+    // Add Animation
     btn.classList.add('chirping');
 
-    // 3. Update the Counter Text
-    chirps++;
-    countDisplay.innerText = chirps + (chirps === 1 ? " chirp" : " chirps");
+    // Hit the API to add +1 to the global database
+    fetch(`https://api.countapi.xyz/hit/${namespace}/${key}`)
+      .then(res => res.json())
+      .then(res => {
+        updateDisplay(res.value);
+      })
+      .catch(err => console.error("Could not reach counter service"));
 
-    // 4. Remove Animation Class after 1 second (stops the flapping)
+    // Remove Animation after 1s
     setTimeout(() => {
       btn.classList.remove('chirping');
     }, 1000); 
   });
 });
-    </script>
+</script>
+    
     
 </body>
 </html>
