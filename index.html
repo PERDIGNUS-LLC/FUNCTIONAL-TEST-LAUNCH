@@ -148,6 +148,72 @@
         .sub-brand { font-family: 'Playfair Display', serif; font-size: 16px; color: #ccc; margin-bottom: 25px; }
         .copyright { font-size: 12px; color: #666; }
     </style>
+    /* --- Chirp Button Styles --- */
+.chirp-button {
+  background: white;
+  border: 2px solid #FFD700; /* Gold border */
+  border-radius: 50px;       /* Pill shape */
+  padding: 12px 28px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  cursor: pointer;
+  font-family: inherit;      /* Uses your site's font */
+  font-weight: bold;
+  color: #555;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  outline: none;
+}
+
+.chirp-button:hover {
+  background: #FFFDF0;       /* Very light yellow tint on hover */
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+  border-color: #ffcc00;
+}
+
+.chirp-button:active {
+  transform: scale(0.96);    /* Button presses down when clicked */
+}
+
+/* --- The Animation Logic --- */
+
+/* Wing Animation */
+.chirping #wing {
+  transform-origin: 30px 50px; /* Pivot point for the wing */
+  animation: flap 0.15s ease-in-out infinite alternate;
+}
+
+/* Beak Top Animation */
+.chirping #beak-top {
+  transform-origin: 85px 47px; /* Pivot point for top beak */
+  animation: talk-top 0.1s linear infinite alternate;
+}
+
+/* Beak Bottom Animation */
+.chirping #beak-bottom {
+  transform-origin: 85px 57px; /* Pivot point for bottom beak */
+  animation: talk-bottom 0.1s linear infinite alternate;
+}
+
+/* --- Keyframes (The Movement) --- */
+
+@keyframes flap {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(-30deg); } /* Flap Up */
+}
+
+@keyframes talk-top {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(-20deg); } /* Open Up */
+}
+
+@keyframes talk-bottom {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(15deg); } /* Open Down */
+}
+    
 </head>
 
 <body>
@@ -165,6 +231,35 @@
         <span id="label-title"></span>
         <span id="label-desc" class="desc-text"></span>
     </div>
+</div>
+<div class="chirp-container" style="display: flex; justify-content: center; margin: 3rem 0;">
+  
+  <button id="chirp-btn" class="chirp-button" aria-label="Give a Chirp">
+    
+    <svg class="chick-svg" viewBox="0 0 100 100" width="45" height="45">
+      <path d="M45,85 L45,95 M55,85 L55,95" stroke="#333" stroke-width="4" stroke-linecap="round"/>
+      
+      <circle cx="50" cy="50" r="40" fill="#FFD700" /> 
+      
+      <circle cx="65" cy="40" r="4" fill="#333" />
+      
+      <g id="beak-group">
+        <path id="beak-top" d="M85,42 L100,47 L85,52 Z" fill="#FF8C00" />
+        <path id="beak-bottom" d="M85,52 L100,57 L85,62 Z" fill="#FF8C00" />
+      </g>
+      
+      <path id="wing" d="M30,50 Q10,40 20,70 Q40,80 50,60" fill="#F4C430" stroke="#E0B120" stroke-width="2" />
+    </svg>
+
+    <div class="text-container" style="display: flex; flex-direction: column; align-items: flex-start; line-height: 1.2;">
+      <span class="label">Give a Chirp</span>
+      <span id="chirp-count" class="count" style="font-size: 0.8em; opacity: 0.7;">0 chirps</span>
+    </div>
+
+  </button>
+
+  <audio id="chirp-sound" src="chirp.mp3" preload="auto"></audio>
+
 </div>
 
 <footer>
@@ -623,5 +718,37 @@ window.addEventListener("resize", () => {
 animate();
 
 </script>
+    <script>
+document.addEventListener('DOMContentLoaded', () => {
+  const btn = document.getElementById('chirp-btn');
+  const sound = document.getElementById('chirp-sound');
+  const countDisplay = document.getElementById('chirp-count');
+  
+  // Local counter (Resets on refresh). 
+  // To make this permanent later, we can connect a database service.
+  let chirps = 0; 
+
+  btn.addEventListener('click', () => {
+    // 1. Play Sound
+    if (sound) {
+      sound.currentTime = 0; // Rewind to start so rapid clicks work
+      sound.play().catch(e => console.log("Audio interaction needed first"));
+    }
+
+    // 2. Add Animation Class (Triggers CSS keyframes)
+    btn.classList.add('chirping');
+
+    // 3. Update the Counter Text
+    chirps++;
+    countDisplay.innerText = chirps + (chirps === 1 ? " chirp" : " chirps");
+
+    // 4. Remove Animation Class after 1 second (stops the flapping)
+    setTimeout(() => {
+      btn.classList.remove('chirping');
+    }, 1000); 
+  });
+});
+    </script>
+    
 </body>
 </html>
